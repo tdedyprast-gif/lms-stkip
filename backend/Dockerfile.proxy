@@ -1,10 +1,22 @@
 FROM python:3.9-slim
 
 WORKDIR /app
+
+# Install system dependencies untuk kompilasi paket Python (bcrypt, cryptography, jq, dll)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    build-essential \
+    libffi-dev \
+    libjq-dev \
+    jq \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# Also install uvicorn since it's typically required to run FastAPI
+
+# Uvicorn sudah tercakup di requirements.txt, tetapi jika ingin memastikan:
 RUN pip install --no-cache-dir uvicorn
+
 COPY server.py .
 
 EXPOSE 8001
