@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: obelms
+      TZ: Asia/Jakarta
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  backend-go:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=obelms port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+      UPLOAD_DIR: "/app/backend/uploads"
+    volumes:
+      - uploads_data:/app/backend/uploads
+    ports:
+      - "9000:9000"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  backend-proxy:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.proxy
+    environment:
+      GO_BACKEND_URL: "http://backend-go:9000"
+    ports:
+      - "8001:8001"
+    depends_on:
+      - backend-go
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_BACKEND_URL: "http://localhost:8001"
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-proxy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads_data:
