@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: obelms
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-obelms}
       TZ: Asia/Jakarta
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -19,7 +19,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     environment:
-      DATABASE_URL: "host=db user=postgres password=postgres dbname=obelms port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+      DATABASE_URL: "host=db user=${POSTGRES_USER:-postgres} password=${POSTGRES_PASSWORD:-postgres} dbname=${POSTGRES_DB:-obelms} port=5432 sslmode=disable TimeZone=Asia/Jakarta"
       UPLOAD_DIR: "/app/backend/uploads"
     volumes:
       - uploads_data:/app/backend/uploads
@@ -46,7 +46,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_BACKEND_URL: "http://localhost:8001"
+        REACT_APP_BACKEND_URL: "${REACT_APP_BACKEND_URL:-https://belajar.stkippacitan.ac.id}"
     ports:
       - "3000:80"
     depends_on:

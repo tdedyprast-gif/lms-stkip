@@ -19,6 +19,12 @@ Anda dapat menjalankan backend dan frontend secara terpisah sesuai dengan kebutu
    cd /path/to/lms-stkip
    ```
 
+2. **Penting (Keamanan)**: Salin file `.env.example` menjadi `.env` dan ganti kredensial database default dengan password yang kuat untuk keamanan produksi:
+   ```bash
+   cp .env.example .env
+   nano .env
+   ```
+
 ### 1. Menjalankan Backend Saja (Database, Go, Proxy)
 Jika Anda hanya ingin menjalankan API (sangat berguna jika Anda sedang men-develop frontend secara terpisah di host machine), jalankan:
 ```bash
