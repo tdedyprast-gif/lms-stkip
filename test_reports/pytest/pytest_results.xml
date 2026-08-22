@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="52" time="6.556" timestamp="2026-08-22T08:26:50.685954+00:00" hostname="agent-env-86bc4088-7d37-48b3-b291-a132a6002e84"><testcase classname="tests.backend_test.TestAuth" name="test_health" time="0.150" /><testcase classname="tests.backend_test.TestAuth" name="test_login_roles[admin-admin]" time="0.174" /><testcase classname="tests.backend_test.TestAuth" name="test_login_roles[dosen-dosen]" time="0.189" /><testcase classname="tests.backend_test.TestAuth" name="test_login_roles[mahasiswa-mahasiswa]" time="0.168" /><testcase classname="tests.backend_test.TestAuth" name="test_login_wrong_password" time="0.173" /><testcase classname="tests.backend_test.TestCourses" name="test_dosen_sees_own_courses" time="0.903" /><testcase classname="tests.backend_test.TestAuth" name="test_login_unknown_email" time="0.114" /><testcase classname="tests.backend_test.TestCourses" name="test_mahasiswa_sees_enrolled_only" time="0.139" /><testcase classname="tests.backend_test.TestCourses" name="test_admin_sees_all" time="0.183" /><testcase classname="tests.backend_test.TestCourses" name="test_get_course_detail" time="0.087" /><testcase classname="tests.backend_test.TestCourses" name="test_get_course_not_found" time="0.090" /><testcase classname="tests.backend_test.TestCourses" name="test_course_crud" time="0.305" /><testcase classname="tests.backend_test.TestAuth" name="test_me" time="0.813" /><testcase classname="tests.backend_test.TestAuth" name="test_me_no_token" time="0.103" /><testcase classname="tests.backend_test.TestAuth" name="test_me_bad_token" time="0.123" /><testcase classname="tests.backend_test.TestAuth" name="test_register_new_user" time="0.470" /><testcase classname="tests.test_data_privacy" name="test_student_cannot_read_full_class_grade_matrix" time="0.644"><failure message="AssertionError: Mahasiswa can read the whole class grade matrix (no role guard on GET /courses/:id/grades)&#10;assert not [{'name': 'Siti Nurhaliza', 'nim': '2283207012', 'scores': {'30aa41bd-623f-41de-a0e9-4cb47850f2dc': 87, '8f5b6641-d87c...4da9292a': 80, '9fb16ff4-f2c9-475b-96ce-8170b9e1ac3a': 79, ...}, 'student_id': '6c9dee77-2d74-4896-9787-a725e7416c56'}]">mhs = &lt;requests.sessions.Session object at 0xfa629106a950&gt;
+course_id = 'aaa91174-1a72-4bd7-af8d-34316eaf274b'
+
+    def test_student_cannot_read_full_class_grade_matrix(mhs, course_id):
+        r = mhs.get(f"{API}/courses/{course_id}/grades", timeout=T)
+        if r.status_code == 200:
+            others = [s for s in r.json().get("students", []) if s.get("nim") != "2283207005"]
+&gt;           assert not others, "Mahasiswa can read the whole class grade matrix (no role guard on GET /courses/:id/grades)"
+E           AssertionError: Mahasiswa can read the whole class grade matrix (no role guard on GET /courses/:id/grades)
+E           assert not [{'name': 'Siti Nurhaliza', 'nim': '2283207012', 'scores': {'30aa41bd-623f-41de-a0e9-4cb47850f2dc': 87, '8f5b6641-d87c...4da9292a': 80, '9fb16ff4-f2c9-475b-96ce-8170b9e1ac3a': 79, ...}, 'student_id': '6c9dee77-2d74-4896-9787-a725e7416c56'}]
+
+tests/test_data_privacy.py:42: AssertionError</failure></testcase><testcase classname="tests.test_data_privacy" name="test_student_cannot_read_class_attainment" time="0.055"><failure message="AssertionError: Mahasiswa can read full-class attainment (GET /courses/:id/attainment has no role guard)&#10;assert 200 == 403&#10; +  where 200 = &lt;Response [200]&gt;.status_code">mhs = &lt;requests.sessions.Session object at 0xfa629106a950&gt;
+course_id = 'aaa91174-1a72-4bd7-af8d-34316eaf274b'
+
+    def test_student_cannot_read_class_attainment(mhs, course_id):
+        r = mhs.get(f"{API}/courses/{course_id}/attainment", timeout=T)
+&gt;       assert r.status_code == 403, "Mahasiswa can read full-class attainment (GET /courses/:id/attainment has no role guard)"
+E       AssertionError: Mahasiswa can read full-class attainment (GET /courses/:id/attainment has no role guard)
+E       assert 200 == 403
+E        +  where 200 = &lt;Response [200]&gt;.status_code
+
+tests/test_data_privacy.py:47: AssertionError</failure></testcase><testcase classname="tests.test_data_privacy" name="test_student_cannot_read_early_warning" time="0.044"><failure message="AssertionError: Mahasiswa can read the class early-warning list (privacy leak)&#10;assert 200 == 403&#10; +  where 200 = &lt;Response [200]&gt;.status_code">mhs = &lt;requests.sessions.Session object at 0xfa629106a950&gt;
+course_id = 'aaa91174-1a72-4bd7-af8d-34316eaf274b'
+
+    def test_student_cannot_read_early_warning(mhs, course_id):
+        r = mhs.get(f"{API}/courses/{course_id}/early-warning", timeout=T)
+&gt;       assert r.status_code == 403, "Mahasiswa can read the class early-warning list (privacy leak)"
+E       AssertionError: Mahasiswa can read the class early-warning list (privacy leak)
+E       assert 200 == 403
+E        +  where 200 = &lt;Response [200]&gt;.status_code
+
+tests/test_data_privacy.py:52: AssertionError</failure></testcase><testcase classname="tests.backend_test.TestAuth" name="test_register_duplicate_email" time="0.099" /><testcase classname="tests.test_data_privacy" name="test_student_cannot_export_class_grades" time="0.046"><failure message="AssertionError: Mahasiswa can download the SIAKAD grade export for the whole class&#10;assert 200 == 403&#10; +  where 200 = &lt;Response [200]&gt;.status_code">mhs = &lt;requests.sessions.Session object at 0xfa629106a950&gt;
+course_id = 'aaa91174-1a72-4bd7-af8d-34316eaf274b'
+
+    def test_student_cannot_export_class_grades(mhs, course_id):
+        r = mhs.get(f"{API}/courses/{course_id}/export/siakad", timeout=T)
+&gt;       assert r.status_code == 403, "Mahasiswa can download the SIAKAD grade export for the whole class"
+E       AssertionError: Mahasiswa can download the SIAKAD grade export for the whole class
+E       assert 200 == 403
+E        +  where 200 = &lt;Response [200]&gt;.status_code
+
+tests/test_data_privacy.py:57: AssertionError</failure></testcase><testcase classname="tests.test_data_privacy" name="test_cleanup_leftover_test_users" time="0.092" /><testcase classname="tests.backend_test.TestAuth" name="test_register_short_password_rejected" time="0.101" /><testcase classname="tests.backend_test.TestAnalytics" name="test_attainment" time="0.058" /><testcase classname="tests.backend_test.TestAnalytics" name="test_fajar_at_risk" time="0.044" /><testcase classname="tests.backend_test.TestAuth" name="test_register_self_assign_admin_role" time="0.245"><failure message="AssertionError: Privilege escalation: public /auth/register granted admin role&#10;assert 'admin' != 'admin'">self = &lt;backend_test.TestAuth object at 0xf8050f5c0a10&gt;
+admin = &lt;requests.sessions.Session object at 0xf8050f5f3bd0&gt;
+
+    def test_register_self_assign_admin_role(self, admin):
+        """SECURITY: public register should not allow role=admin escalation."""
+        email = f"TEST_{uuid.uuid4().hex[:8]}@x.test"
+        r = requests.post(f"{API}/auth/register", json={
+            "name": "TEST_Esc", "email": email, "password": "secret123", "role": "admin"
+        }, timeout=TIMEOUT)
+        assert r.status_code in (200, 201), r.text
+        role = r.json()["user"]["role"]
+        admin.delete(f"{API}/users/{r.json()['user']['id']}", timeout=TIMEOUT)
+&gt;       assert role != "admin", "Privilege escalation: public /auth/register granted admin role"
+E       AssertionError: Privilege escalation: public /auth/register granted admin role
+E       assert 'admin' != 'admin'
+
+tests/backend_test.py:149: AssertionError</failure></testcase><testcase classname="tests.backend_test.TestAnalytics" name="test_early_warning" time="0.044" /><testcase classname="tests.backend_test.TestAnalytics" name="test_dashboard_roles" time="0.139" /><testcase classname="tests.backend_test.TestRBAC" name="test_mahasiswa_blocked_write_endpoints" time="0.477" /><testcase classname="tests.backend_test.TestAdmin" name="test_list_users_filters" time="0.181" /><testcase classname="tests.backend_test.TestAdmin" name="test_admin_created_user_with_uppercase_email_can_login" time="0.292"><failure message="AssertionError: admin-created user with mixed-case email cannot login (email not normalized in CreateUser)&#10;assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">self = &lt;backend_test.TestAdmin object at 0xf8050f5d6c90&gt;
+admin = &lt;requests.sessions.Session object at 0xf8050f5f3bd0&gt;
+
+    def test_admin_created_user_with_uppercase_email_can_login(self, admin):
+        """BUG: CreateUser stores email verbatim while Login lowercases it."""
+        email = f"TEST_{uuid.uuid4().hex[:6]}@X.test"
+        r = admin.post(f"{API}/users", json={"name": "TEST_Case", "email": email, "password": "secret123", "role": "mahasiswa"}, timeout=TIMEOUT)
+        assert r.status_code in (200, 201), r.text
+        uid = r.json()["id"]
+        lg = requests.post(f"{API}/auth/login", json={"email": email, "password": "secret123"}, timeout=TIMEOUT)
+        admin.delete(f"{API}/users/{uid}", timeout=TIMEOUT)
+&gt;       assert lg.status_code == 200, "admin-created user with mixed-case email cannot login (email not normalized in CreateUser)"
+E       AssertionError: admin-created user with mixed-case email cannot login (email not normalized in CreateUser)
+E       assert 401 == 200
+E        +  where 401 = &lt;Response [401]&gt;.status_code
+
+tests/backend_test.py:512: AssertionError</failure></testcase><testcase classname="tests.backend_test.TestRBAC" name="test_dosen_blocked_admin_user_mgmt" time="0.044" /><testcase classname="tests.backend_test.TestRBAC" name="test_list_users_requires_admin" time="0.047"><failure message="AssertionError: GET /api/users returned 200 for mahasiswa (should be 403)&#10;assert 200 == 403&#10; +  where 200 = &lt;Response [200]&gt;.status_code">self = &lt;backend_test.TestRBAC object at 0xfa6291039890&gt;
+mhs = &lt;requests.sessions.Session object at 0xfa629105d610&gt;
+
+    def test_list_users_requires_admin(self, mhs):
+        """GET /api/users has no role guard in router - students can enumerate all users."""
+        r = mhs.get(f"{API}/users", timeout=TIMEOUT)
+&gt;       assert r.status_code == 403, f"GET /api/users returned {r.status_code} for mahasiswa (should be 403)"
+E       AssertionError: GET /api/users returned 200 for mahasiswa (should be 403)
+E       assert 200 == 403
+E        +  where 200 = &lt;Response [200]&gt;.status_code
+
+tests/backend_test.py:178: AssertionError</failure></testcase><testcase classname="tests.backend_test.TestAdmin" name="test_user_crud" time="0.585" /><testcase classname="tests.backend_test.TestMeetings" name="test_16_meetings_seeded" time="0.046" /><testcase classname="tests.backend_test.TestMeetings" name="test_meeting_and_material_crud" time="0.267" /><testcase classname="tests.backend_test.TestMeetings" name="test_material_file_upload" time="0.188" /><testcase classname="tests.backend_test.TestAssessments" name="test_list_assessments_with_links" time="0.045" /><testcase classname="tests.backend_test.TestAdmin" name="test_cpl_crud" time="0.206" /><testcase classname="tests.backend_test.TestAssessments" name="test_assessment_create_tag_untag_delete" time="0.445" /><testcase classname="tests.backend_test.TestOBEMapping" name="test_list_cpmk_structure" time="0.123" /><testcase classname="tests.backend_test.TestOBEMapping" name="test_cpmk_create_link_subcpmk_delete" time="0.267" /><testcase classname="tests.backend_test.TestGrades" name="test_grade_matrix" time="0.045" /><testcase classname="tests.backend_test.TestGrades" name="test_bulk_save_grades_persists" time="0.225" /><testcase classname="tests.backend_test.TestPortfolio" name="test_student_own_portfolio" time="0.099" /><testcase classname="tests.backend_test.TestPortfolio" name="test_student_cannot_read_other_portfolio" time="0.257"><failure message="AssertionError: Mahasiswa can read another student's portfolio (IDOR)&#10;assert (200 == 403 or {'student_id': '86f682a5-088e-4535-b5d4-eed55d1f71a6', 'name': 'Siti Nurhaliza', 'nim': '2283207012', 'cpmk': [{'cpmk_...: 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...} is None)&#10; +  where 200 = &lt;Response [200]&gt;.status_code&#10; +  and   {'student_id': '86f682a5-088e-4535-b5d4-eed55d1f71a6', 'name': 'Siti Nurhaliza', 'nim': '2283207012', 'cpmk': [{'cpmk_...: 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...} = &lt;built-in method get of dict object at 0xf8050f474bc0&gt;('student')&#10; +    where &lt;built-in method get of dict object at 0xf8050f474bc0&gt; = {'class_cpmk': [{'cpmk_id': '23a810b4-5c78-4bb9-8278-e3f17809a053', 'code': 'CPMK-1', 'description': 'Mampu menjelaska... 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...}}.get&#10; +      where {'class_cpmk': [{'cpmk_id': '23a810b4-5c78-4bb9-8278-e3f17809a053', 'code': 'CPMK-1', 'description': 'Mampu menjelaska... 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...}} = json()&#10; +        where json = &lt;Response [200]&gt;.json">self = &lt;backend_test.TestPortfolio object at 0xf8050f5c2c90&gt;
+mhs = &lt;requests.sessions.Session object at 0xf8050f3d0a50&gt;
+dosen = &lt;requests.sessions.Session object at 0xf8050f5e7250&gt;
+course_id = 'aaa91174-1a72-4bd7-af8d-34316eaf274b'
+
+    def test_student_cannot_read_other_portfolio(self, mhs, dosen, course_id):
+        att = dosen.get(f"{API}/courses/{course_id}/attainment", timeout=TIMEOUT).json()
+        me = mhs.get(f"{API}/auth/me", timeout=TIMEOUT).json()["id"]
+        others = [s for s in att["students"] if s["student_id"] != me]
+        assert others
+        r = mhs.get(f"{API}/students/{others[0]['student_id']}/portfolio", params={"course_id": course_id}, timeout=TIMEOUT)
+&gt;       assert r.status_code == 403 or r.json().get("student") is None, \
+            "Mahasiswa can read another student's portfolio (IDOR)"
+E       AssertionError: Mahasiswa can read another student's portfolio (IDOR)
+E       assert (200 == 403 or {'student_id': '86f682a5-088e-4535-b5d4-eed55d1f71a6', 'name': 'Siti Nurhaliza', 'nim': '2283207012', 'cpmk': [{'cpmk_...: 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...} is None)
+E        +  where 200 = &lt;Response [200]&gt;.status_code
+E        +  and   {'student_id': '86f682a5-088e-4535-b5d4-eed55d1f71a6', 'name': 'Siti Nurhaliza', 'nim': '2283207012', 'cpmk': [{'cpmk_...: 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...} = &lt;built-in method get of dict object at 0xf8050f474bc0&gt;('student')
+E        +    where &lt;built-in method get of dict object at 0xf8050f474bc0&gt; = {'class_cpmk': [{'cpmk_id': '23a810b4-5c78-4bb9-8278-e3f17809a053', 'code': 'CPMK-1', 'description': 'Mampu menjelaska... 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...}}.get
+E        +      where {'class_cpmk': [{'cpmk_id': '23a810b4-5c78-4bb9-8278-e3f17809a053', 'code': 'CPMK-1', 'description': 'Mampu menjelaska... 'CPMK-4', 'description': 'Mampu merancang proyek aplikasi web utuh secara kolaboratif.', 'threshold': 65, ...}], ...}} = json()
+E        +        where json = &lt;Response [200]&gt;.json
+
+tests/backend_test.py:376: AssertionError</failure></testcase><testcase classname="tests.backend_test.TestExport" name="test_export_siakad" time="0.652" /><testcase classname="tests.backend_test.TestSubmissions" name="test_student_upload_and_dosen_list" time="0.248" /><testcase classname="tests.backend_test.TestDiscussions" name="test_create_and_list" time="0.133" /><testcase classname="tests.backend_test.TestRPS" name="test_get_and_save_rps" time="0.295" /><testcase classname="tests.backend_test.TestExport" name="test_export_obe" time="0.053" /><testcase classname="tests.backend_test.TestRemediation" name="test_remediation_flow" time="0.414" /></testsuite></testsuites>

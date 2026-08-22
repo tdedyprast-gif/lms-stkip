@@ -1,0 +1,111 @@
+{
+  "theme": "dark_light_toggle",
+  "typography": {
+    "headings": "Outfit",
+    "body": "Manrope",
+    "hierarchy": {
+      "H1": "text-4xl sm:text-5xl tracking-tight font-bold",
+      "H2": "text-2xl sm:text-3xl tracking-tight font-semibold",
+      "H3": "text-xl sm:text-2xl font-semibold",
+      "H4": "text-lg sm:text-xl font-medium",
+      "body": "text-base leading-relaxed",
+      "small": "text-sm text-muted-foreground",
+      "labels": "text-xs uppercase tracking-[0.2em] font-bold"
+    },
+    "rules": "DO NOT use Inter, Roboto, Open Sans, or Lato for Headings. Use Outfit for Headings and Manrope for Body."
+  },
+  "colors": {
+    "archetype": "High-Contrast Functional Dashboard with Electric Blue",
+    "palette": {
+      "primary": "221 100% 55%",
+      "primary-foreground": "0 0% 100%",
+      "background-light": "0 0% 98%",
+      "background-dark": "224 71% 4%",
+      "surface-light": "0 0% 100%",
+      "surface-dark": "224 71% 7%",
+      "accent-warning": "35 92% 60%",
+      "accent-danger": "0 84% 60%",
+      "accent-success": "142 71% 45%"
+    },
+    "rules": "Use Electric Blue (hsl(221, 100%, 55%)) as the primary brand and action color. Tint dark mode grays with a hint of blue. Ensure high contrast for data readability. NEVER use pure #000000 or #808080."
+  },
+  "visual_enhancers": {
+    "surfaces": "Use 'Neumorphism (Tactile)' or 'Grid Borders' for dashboard widgets. Cards should have flat backgrounds with 1px subtle borders (border-border) and no shadow by default. On hover, apply a slight lift (-translate-y-1) and shadow-lg.",
+    "glassmorphism": "Use 'Crystal Glass' (backdrop-blur-xl bg-background/70 with 1px delicate inner stroke) for sticky headers and floating navs. Do NOT use transparent backgrounds without blur/scrim.",
+    "charts": "Use Recharts for the radar/spider chart of CPL/CPMK attainment. Ensure chart colors use the Electric Blue mixed with complementary colors (e.g., Teal, Orange) from the Shadcn chart scale.",
+    "badges": "Use highly visible, color-coded badges for Early Warning System (Red/Danger for below threshold, Green/Success for on-track)."
+  },
+  "component_strategy": {
+    "tables": "Use Shadcn Table. Dense and compact for Assessment Matrix and grade inputs. Sticky headers for long class lists.",
+    "forms": "Use Shadcn Form, Input, Select, and Checkbox. Never use native inputs. Use Shadcn Calendar for date picking.",
+    "tabs": "Override default fixed heights (h-9 to h-auto) for TabList to prevent text cutoff. Use tabs to separate 16 Meetings in the teaching materials view.",
+    "tree_view": "For CPL-CPMK-Sub-CPMK mapping, use a custom collapsible tree structure with clear indentation and connecting border lines (border-l).",
+    "dialogs": "Use Shadcn Dialogs for CQI/Remediation assignments and Rubric editing to avoid navigating away from the context."
+  },
+  "grids": {
+    "dashboard_mode": "High Density Grid (For Dashboards/Analytics). Base Grid: grid-cols-1 md:grid-cols-3 lg:grid-cols-4. Tight gap (gap-4 or gap-6).",
+    "widget_spans": "Summary metrics: col-span-1. Primary chart (Spider chart/Progress): col-span-2 row-span-2. Feed/List (Early warnings): col-span-1 row-span-2."
+  },
+  "layouts": {
+    "navigation": "Dashboard requires a Sidebar (collapsible on mobile) and a Sticky Top Header (z-50, backdrop-blur-xl). Header must include Light/Dark toggle, User Profile Avatar, and Notifications.",
+    "spacing": "Generous Spacing Philosophy. Use p-6 or p-8 inside cards. Page wrappers should have p-4 md:p-8.",
+    "alignment": "Left-align tables, dense content, and forms. Center-align empty states or specific modal headers."
+  },
+  "motion": {
+    "transitions": "Use transition: transform 0.2s ease, opacity 0.2s ease. NO 'transition: all'.",
+    "hover_states": "All interactive elements MUST explicitly set color/bg on hover (e.g., hover:bg-primary/90).",
+    "micro_interactions": "Entrance animations for list items in the Assessment Matrix. Smooth expand/collapse for the CPL mapping tree."
+  },
+  "accessibility": {
+    "contrast": "Minimum 4.5:1 for text. Explicit focus states (focus:ring-2 focus:ring-primary).",
+    "testing": "All interactive and key informational elements MUST include a data-testid attribute (kebab-case, role-based).",
+    "motion": "Respect prefers-reduced-motion."
+  },
+  "media": {
+    "icons": "Use @phosphor-icons/react for dense dashboards and developer tools. Install via yarn add @phosphor-icons/react.",
+    "images": "Hero images must not exceed 80vh on mobile."
+  },
+  "3d_libraries": {
+    "strategy": "Not strictly required for this data-heavy LMS, but Visx or Recharts are MANDATORY for the Radar/Spider charts to visualize student capabilities. Avoid heavy 3D to keep performance high."
+  },
+  "image_urls": {
+    "login_hero": {
+      "url": "https://images.pexels.com/photos/7972324/pexels-photo-7972324.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Group of young students walking on campus sidewalk on a bright day. Use as background or side panel for the Login screen."
+    },
+    "dashboard_banner": {
+      "url": "https://images.pexels.com/photos/31039051/pexels-photo-31039051.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Sunlit university campus. Can be used for a welcome banner in the student dashboard."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Ensure standard components from Shadcn UI are customized to fit the 'High-Contrast Functional Dashboard' archetype.",
+    "Build a robust layout with a collapsible sidebar and sticky top header with Dark/Light mode toggle.",
+    "The CPL-CPMK mapping must visually represent the hierarchy clearly using nested layouts or a tree structure.",
+    "The Assessment Matrix is a critical view—use dense, horizontally scrollable tables if necessary.",
+    "For the Radar/Spider chart, use Recharts.",
+    "Electric Blue (hsl(221, 100%, 55%)) is the primary color. Apply it to buttons, active states, and chart highlights. Override tailwind config with it.",
+    "Include STKIP PGRI Pacitan tagline 'Kampus Humanis dan Religius' prominently in the login page or header.",
+    "All code MUST be written in JavaScript (.js/.jsx), not TypeScript (.tsx)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. Make creative, distinctive frontends that surprise and delight.",
+    "Do not make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur) for sticky navs. DO NOT use completely transparent backgrounds for elements with content below them.",
+    "You MUST NOT apply universal transition (e.g., transition: all). Add transitions for specific interactive elements.",
+    "You MUST NOT center align the app container (.App { text-align: center; } is FORBIDDEN).",
+    "Always use modern button styles like pill-shaped, or sharp buttons with interaction animations & color relevant to the app style.",
+    "NEVER use AI assistant Emoji characters for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, entrance animations.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Use sonner for toasts (located in /app/frontend/src/components/ui/sonner.jsx)."
+  ],
+  "GENERAL_UI_UX_DESIGN_GUIDELINES": [
+    "Prioritize Information Architecture. For a data-heavy LMS, ensure logical grouping of features like OBE settings, Grades, and Portfolios.",
+    "Provide clear feedback for user actions (e.g., Toast notifications for grade updates, loading skeletons).",
+    "Maintain consistent alignment and spacing. Forms should have inputs clearly labeled and left-aligned.",
+    "Reduce Cognitive Load by progressively disclosing information. Use tabs (e.g., for 16 Meetings) and collapsibles (e.g., for sub-CPMKs).",
+    "Ensure mobile responsiveness using stacked layouts on smaller screens while retaining full data tables through horizontal scrolling."
+  ]
+}

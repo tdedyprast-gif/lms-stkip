@@ -1,0 +1,52 @@
+{
+  "summary": "Full backend + frontend E2E test of OBE-LMS (Go/Gin behind FastAPI proxy, React). Wrote 52 pytest cases against the public URL covering auth, RBAC, courses, CPL-CPMK-SubCPMK mapping, assessment matrix + tagging, grade matrix/bulk save, attainment & early warning, portfolio, Excel exports (SIAKAD header + OBE audit), 16 meetings/materials (incl. multipart upload), submissions upload, discussions, remediation/CQI, admin users/CPL, RPS. Result 44/52 passed. All 8 failures are genuine authorization/privacy defects plus one email-normalization bug; no 500s, no broken endpoints. Frontend E2E (dosen/mahasiswa/admin): login via demo buttons + submit, role-based sidebar, course detail tabs, grade input -> save -> toast '48 nilai tersimpan' -> persisted after reload, analytics bar+radar charts, early warning card showing Fajar (NA 48.6), SIAKAD xlsx download, student portfolio radar, dark/light toggle. Zero console errors and zero failed API calls in the browser.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/auth/register", "issue": "Privilege escalation: public register accepts role='admin' and creates an admin account (auth.go allows role admin in the whitelist). Force role to 'mahasiswa' (or admin-approved list) on the public endpoint.", "priority": "CRITICAL"},
+      {"endpoint": "GET /api/users", "issue": "No RequireRole guard in router.go -> any authenticated mahasiswa/dosen can enumerate all users (names, emails, NIM/NIDN, roles). Returned 200 for a student token.", "priority": "HIGH"},
+      {"endpoint": "GET /api/students/:id/portfolio", "issue": "IDOR: a mahasiswa can pass another student's UUID and receive that student's full CPMK/CPL scores and final grade. Enforce studentID == currentUserID unless role in (dosen, admin).", "priority": "HIGH"},
+      {"endpoint": "GET /api/courses/:id/attainment, /early-warning, /grades, /export/siakad, /export/obe", "issue": "No role guard: a mahasiswa token can read the whole class grade matrix, class attainment, the at-risk list (names+NIM+scores) and download the SIAKAD/OBE Excel exports. Only the UI hides these tabs.", "priority": "HIGH"},
+      {"endpoint": "POST /api/users (admin)", "issue": "CreateUser stores email verbatim while Login/Register lowercase it, so any admin-created account containing an uppercase letter in the email can never log in (401). Also missing duplicate-email pre-check. Apply strings.ToLower(TrimSpace(email)) as in Register.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "PUT /api/users/:id", "issue": "UpdateUser overwrites NIM/NIDN/Prodi with empty strings when those fields are omitted from the payload (non-partial update)."},
+      {"endpoint": "GET /api/courses/:id/*", "issue": "Course-scoped endpoints do not verify that the caller owns/enrolls in the course, so any authenticated user with a course UUID can read its CPMK, assessments, meetings, discussions and remediation."},
+      {"endpoint": "POST /api/grades", "issue": "No range validation on score (values >100 or negative are accepted and skew attainment); UI states 0-100."},
+      {"endpoint": "GET /api/courses/:id/meetings", "issue": "'materials' key is omitted (omitempty) when a meeting has no material - frontend must default to []; consider always emitting an empty array."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Login", "issues": ["Demo buttons (demo-dosen/demo-mahasiswa/demo-admin) only prefill the form; the review request implies one-click login. Users must additionally press 'Masuk'."]},
+      {"screen": "Dashboard / all pages", "issues": ["The 'Berhasil masuk' sonner toast renders on top of the header user name/avatar (top-right), covering it for ~4s. Consider bottom-right placement or header padding."]},
+      {"screen": "Analytics / Portfolio radar", "issues": ["Recharts PolarRadiusAxis tick labels render rotated/overlapping inside the radar polygon (tiny stray numbers next to CPMK-2 / CPL-4). Hide the radius axis ticks or set tick={false}."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/backend/tests/test_data_privacy.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "auth.go Register: never allow role='admin' from the public endpoint.",
+    "router.go: add s.RequireRole(\"admin\") to GET /users; add RequireRole(\"admin\",\"dosen\") to /courses/:id/attainment, /early-warning, /grades, /export/siakad, /export/obe.",
+    "analytics.go StudentPortfolio: reject requests where a mahasiswa asks for another student's id (403).",
+    "academic.go CreateUser: lowercase+trim email (login currently impossible for mixed-case emails) and return 400 on duplicate email.",
+    "academic.go UpdateUser: make NIM/NIDN/Prodi updates partial instead of overwriting with empty strings.",
+    "Add server-side score range validation (0..max_score) in SaveGrades.",
+    "Optional UX: make demo buttons submit the login form; move toast away from the header; hide radar radius-axis ticks."
+  ],
+  "critical_code_review_comments": [
+    "Authorization is largely enforced in the UI only: every course-scoped GET trusts the caller, so any authenticated token with a course UUID reads other users' grades/analytics. Add an ownership/enrollment check helper and apply it to all /courses/:id/* handlers.",
+    "compute() is re-run per course inside the dosen/mahasiswa Dashboard loop and again in attainment/early-warning/export/portfolio; it issues N+1 queries per call. Cache or aggregate in SQL before the dataset grows.",
+    "Missing grades are silently treated as 0% in compute() (pct map default), so an ungraded assessment lowers CPMK attainment and can mark a student 'at risk' incorrectly - decide explicitly between 'not yet graded' and 0.",
+    "round2() uses int truncation and breaks for negative values; use math.Round.",
+    "JWT has no refresh/revocation and a 24h lifetime stored in localStorage; no brute-force lockout on /auth/login (login is Bearer-based by design, so the cookie/lockout items in the auth playbook do not apply, but rate limiting is still recommended)."
+  ],
+  "updated_files": ["/app/backend/tests/backend_test.py", "/app/backend/tests/test_data_privacy.py"],
+  "success_rate": {"backend": "85% (44/52 pytest cases)", "frontend": "100% of tested flows (login 3 roles, nav, 9 course tabs, grade save+persist, exports, portfolio, theme toggle)"},
+  "seed_data_creation": "Only transient TEST_-prefixed users/courses/CPMK/assessments/meetings/materials/discussions/remediation/CPL; all deleted by the tests. test_data_privacy.py::test_cleanup_leftover_test_users removed leftovers from the earlier run. Seed grade for Ahmad Fauzi (Keaktifan) was temporarily changed to 88 in the UI test and restored to 90.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "/app/memory/test_credentials.md is present and all listed credentials work (admin/dosen/mahasiswa/fajar).",
+  "context_for_next_testing_agent": "Run: cd /app/backend && python -m pytest tests/ -p no:randomly. openpyxl was installed for the SIAKAD header assertion. The 8 known failures map 1:1 to the authorization/privacy items above plus the CreateUser email-casing bug - re-run those specific tests after the fix (TestAuth::test_register_self_assign_admin_role, TestRBAC::test_list_users_requires_admin, TestPortfolio::test_student_cannot_read_other_portfolio, TestAdmin::test_admin_created_user_with_uppercase_email_can_login, and all of test_data_privacy.py). Frontend demo login = click demo-<role> then login-submit-button. Course TIF301 id is stable in the seeded DB; Fajar (2283207031) is the at-risk student.",
+  "rca_of_the_issue": "Root cause of all authorization failures: RBAC is applied only to mutating routes via s.RequireRole in router.go, while every read route sits in the plain authenticated group; the React UI merely hides dosen-only tabs, so any student JWT can call the analytics/grades/export/users endpoints directly. StudentPortfolio additionally accepts an arbitrary :id without comparing it to the JWT subject. Root cause of the login-after-admin-create failure: email normalization (strings.ToLower/TrimSpace) exists in Register and Login but was omitted in CreateUser, so the stored email never matches the normalized lookup."
+}
