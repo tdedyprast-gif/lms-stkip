@@ -46,7 +46,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_BACKEND_URL: "${REACT_APP_BACKEND_URL:-https://belajar.stkippacitan.ac.id}"
+        REACT_APP_BACKEND_URL: "${REACT_APP_BACKEND_URL:-https://belajar.dwijacode.my.id}"
     ports:
       - "3000:80"
     depends_on:
