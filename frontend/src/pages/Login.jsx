@@ -12,11 +12,11 @@ import { toast } from "sonner";
 const HERO =
   "https://images.pexels.com/photos/7972324/pexels-photo-7972324.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=900&w=1200";
 
-const DEMO = [
-  { label: "Dosen", email: "dosen@stkippacitan.ac.id", password: "dosen123" },
-  { label: "Mahasiswa", email: "ahmad@student.stkippacitan.ac.id", password: "mahasiswa123" },
-  { label: "Admin", email: "admin@stkippacitan.ac.id", password: "admin123" },
-];
+// const DEMO = [
+//   { label: "Dosen", email: "dosen@stkippacitan.ac.id", password: "dosen123" },
+//   { label: "Mahasiswa", email: "ahmad@student.stkippacitan.ac.id", password: "mahasiswa123" },
+//   { label: "Admin", email: "admin@stkippacitan.ac.id", password: "admin123" },
+// ];
 
 export default function Login() {
   const { login } = useAuth();
@@ -119,7 +119,7 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="mt-8">
+          {/* <div className="mt-8">
             <p className="text-xs uppercase tracking-[0.2em] font-bold text-muted-foreground mb-3">Akun Demo</p>
             <div className="grid grid-cols-3 gap-2">
               {DEMO.map((d) => (
@@ -133,7 +133,7 @@ export default function Login() {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
