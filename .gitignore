@@ -1,98 +1,79 @@
-# ------------------------------------------------------------------
-# 1️⃣ Sistem Operasi & Editor
-# ------------------------------------------------------------------
-.DS_Store                # macOS
-Thumbs.db                # Windows
-ehthumbs.db
+# ==================================================================
+# 1️⃣ SISTEM OPERASI & IDE EDITOR
+# ==================================================================
+.DS_Store
+Thumbs.db
 Desktop.ini
-.idea/                   # JetBrains IDE (IntelliJ, PyCharm, WebStorm)
-.vscode/                 # VS Code
-*.sublime-workspace
-*.sublime-project
+.idea/
+.vscode/
 
-# ------------------------------------------------------------------
-# 2️⃣ File Konfigurasi & Rahasia
-# ------------------------------------------------------------------
-.env                     # variabel lingkungan (API key, password, dll.)
-.env.*                   # varian .env (contoh .env.local)
-*.secret
-*.pem                    # kunci privat
+# ==================================================================
+# 2️⃣ KEAMANAN & RAHASIA (WEB SECURITY STANDARD) 🔒
+# ==================================================================
+# Memblokir semua file environment variabel agar password/API Key tidak bocor
+.env
+.env.*
+!.env.example    # KECUALI .env.example (Wajib di-push sebagai cetakan)
+
+# Memblokir sertifikat SSL dan kunci privat (Sangat rahasia!)
+*.pem
 *.key
 *.crt
 *.p12
-config/*.yml              # jika ada file konfigurasi berisi kredensial
-secrets/                 # folder khusus untuk secret (jangan push)
+secrets/
 
-# ------------------------------------------------------------------
-# 3️⃣ Build / Distribusi
-# ------------------------------------------------------------------
-/dist/                   # hasil build (JS, CSS, dll.)
-/build/
-/out/
-/target/
-*.class                  # file bytecode Java
-*.jar
-*.war
-*.ear
-*.exe
-*.dll
-*.so
-*.dylib
+# Memblokir database lokal agar data pengguna tidak ikut terunggah
+*.db
+*.sqlite3
 
-# ------------------------------------------------------------------
-# 4️⃣ Dependency Direktori
-# ------------------------------------------------------------------
+# ==================================================================
+# 3️⃣ DEPENDENCIES & PACKAGES (Mencegah Repository Terlalu Berat)
+# ==================================================================
+# Frontend (Node.js)
 node_modules/
+/frontend/node_modules/
+
+# Backend (Go & Python)
 vendor/
-bower_components/
-*.egg-info/
+/backend/vendor/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-*.sqlite3               # database SQLite yang di‑generate
+.venv/
+env/
 
-# ------------------------------------------------------------------
-# 5️⃣ Log & Temporary Files
-# ------------------------------------------------------------------
+# ==================================================================
+# 4️⃣ HASIL BUILD & DOCKER ARTEFAK
+# ==================================================================
+# Frontend Vite/React hasil build
+dist/
+build/
+/frontend/dist/
+/frontend/build/
+
+# Backend Go binary hasil compile (diperbaiki dari list Anda)
+*.exe
+obelms-server     # Nama binary Go Anda di Dockerfile
+/backend/obelms-server
+
+# Docker data local (jika ada volume lokal)
+.docker/
+
+# ==================================================================
+# 5️⃣ USER UPLOADS & LOGS
+# ==================================================================
+# Memblokir folder upload agar gambar/dokumen user di lokal tidak masuk ke Git
+/backend/uploads/
+uploads/
+
+# Log file
 *.log
 npm-debug.log*
-yarn-debug.log*
 yarn-error.log
+
+# ==================================================================
+# 6️⃣ TEMPORARY FILES & CACHE
+# ==================================================================
+.cache/
 *.tmp
 *.temp
-tmp/
-temp/
 *.bak
-*.swp
-*.swo
-
-# ------------------------------------------------------------------
-# 6️⃣ Test & Coverage
-# ------------------------------------------------------------------
-coverage/
-*.lcov
-*.lcov.report.*
-/test-output/
-*.spec.ts
-*.spec.js
-
-# ------------------------------------------------------------------
-# 7️⃣ Dokumentasi Otomatis & Artefak
-# ------------------------------------------------------------------
-/docs/_site/
-*.docx
-*.pdf
-
-# ------------------------------------------------------------------
-# 8️⃣ Miscellaneous yang Tidak Perlu Di‑Git
-# ------------------------------------------------------------------
-*.cache
-*.zip
-*.tar.gz
-*.tgz
-*.rar
-*.7z
-*.bak
-*.old
-*.orig
