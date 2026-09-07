@@ -1,89 +1,98 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ------------------------------------------------------------------
+# 1️⃣ Sistem Operasi & Editor
+# ------------------------------------------------------------------
+.DS_Store                # macOS
+Thumbs.db                # Windows
+ehthumbs.db
+Desktop.ini
+.idea/                   # JetBrains IDE (IntelliJ, PyCharm, WebStorm)
+.vscode/                 # VS Code
+*.sublime-workspace
+*.sublime-project
 
-# IDE and editors
-.idea/
-.vscode/
+# ------------------------------------------------------------------
+# 2️⃣ File Konfigurasi & Rahasia
+# ------------------------------------------------------------------
+.env                     # variabel lingkungan (API key, password, dll.)
+.env.*                   # varian .env (contoh .env.local)
+*.secret
+*.pem                    # kunci privat
+*.key
+*.crt
+*.p12
+config/*.yml              # jika ada file konfigurasi berisi kredensial
+secrets/                 # folder khusus untuk secret (jangan push)
 
-# Dependencies
-node_modules/
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# Testing
-/coverage
-
-# Next.js
-/.next/
+# ------------------------------------------------------------------
+# 3️⃣ Build / Distribusi
+# ------------------------------------------------------------------
+/dist/                   # hasil build (JS, CSS, dll.)
+/build/
 /out/
-next-env.d.ts
-*.tsbuildinfo
-
-# Production builds
-/build
-dist/
-dist
-
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-dump.rdb
-
-# System files
-.DS_Store
-*.pem
-
-# Python
-__pycache__/
-*pyc*
-venv/
-.venv/
-
-# Development tools
-chainlit.md
-.chainlit
-.ipynb_checkpoints/
-.ac
-
-# Deployment
-.vercel
-
-# Data and databases
-agenthub/agents/youtube/db
-
-# Archive files and large assets
-**/*.zip
-**/*.tar.gz
-**/*.tar
-**/*.tgz
-*.pack
-*.deb
+/target/
+*.class                  # file bytecode Java
+*.jar
+*.war
+*.ear
+*.exe
+*.dll
+*.so
 *.dylib
 
-# Build caches
-.cache/
+# ------------------------------------------------------------------
+# 4️⃣ Dependency Direktori
+# ------------------------------------------------------------------
+node_modules/
+vendor/
+bower_components/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3               # database SQLite yang di‑generate
 
-memory/test_credentials.md
+# ------------------------------------------------------------------
+# 5️⃣ Log & Temporary Files
+# ------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log
+*.tmp
+*.temp
+tmp/
+temp/
+*.bak
+*.swp
+*.swo
 
-# Mobile development
-android-sdk/
-#.env
-#.env.*
-#*.env
-credentials.json
-*.key
-.credentials
-frontend/node_modules/.cache/default-development/3.pack
+# ------------------------------------------------------------------
+# 6️⃣ Test & Coverage
+# ------------------------------------------------------------------
+coverage/
+*.lcov
+*.lcov.report.*
+/test-output/
+*.spec.ts
+*.spec.js
+
+# ------------------------------------------------------------------
+# 7️⃣ Dokumentasi Otomatis & Artefak
+# ------------------------------------------------------------------
+/docs/_site/
+*.docx
+*.pdf
+
+# ------------------------------------------------------------------
+# 8️⃣ Miscellaneous yang Tidak Perlu Di‑Git
+# ------------------------------------------------------------------
+*.cache
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bak
+*.old
+*.orig
