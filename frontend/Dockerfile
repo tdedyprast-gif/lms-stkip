@@ -9,6 +9,8 @@ RUN yarn build
 
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
+
+# Konfigurasi Nginx dengan tambahan reverse proxy untuk /api/
 RUN echo 'server { \
     listen 80; \
     location / { \
@@ -16,6 +18,14 @@ RUN echo 'server { \
     index index.html index.htm; \
     try_files $uri $uri/ /index.html; \
     } \
+    location /api/ { \
+    proxy_pass http://backend-proxy:8001/; \
+    proxy_set_header Host $host; \
+    proxy_set_header X-Real-IP $remote_addr; \
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+    proxy_set_header X-Forwarded-Proto $scheme; \
+    } \
     }' > /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
