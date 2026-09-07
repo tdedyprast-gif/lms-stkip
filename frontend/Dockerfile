@@ -13,7 +13,7 @@ RUN yarn build
 
 FROM nginx:alpine
 # DIPERBAIKI: Mengubah /app/build menjadi /app/dist karena menggunakan Vite
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/build /usr/share/nginx/html
 
 # Konfigurasi Nginx Baru mendukung SSL Gratis Let's Encrypt
 RUN echo 'server { \
