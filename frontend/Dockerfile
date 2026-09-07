@@ -36,8 +36,8 @@ RUN echo 'server { \
     server_name api-backend.dwijacode.my.id; \
     \
     # Lokasi Sertifikat SSL (Akan dibuat oleh Certbot nanti) \
-    ssl_certificate /etc/letsencrypt/live/api-backend.dwijacode.my.id/fullchain.pem; \
-    ssl_certificate_key /etc/letsencrypt/live/api-backend.dwijacode.my.id/privkey.pem; \
+    ssl_certificate /etc/letsencrypt/live/dwijacode.my.id/fullchain.pem; \
+    ssl_certificate_key /etc/letsencrypt/live/dwijacode.my.id/privkey.pem; \
     \
     # Pengaturan Keamanan SSL Standar \
     ssl_protocols TLSv1.2 TLSv1.3; \
