@@ -1,0 +1,49 @@
+# .dockerignore untuk Backend (Go + Python Proxy)
+# Mencegah file yang tidak perlu masuk ke Docker build context
+
+# Binary compiled (akan di-build ulang di dalam container)
+obelms-server
+*.exe
+*.out
+
+# Upload files (dihandle oleh Docker volume, bukan image)
+uploads/
+
+# Test files
+tests/
+*_test.go
+pytest.ini
+requirements-test.txt
+*.test.py
+
+# Source control
+.git/
+.gitignore
+.gitattributes
+
+# IDE & editor files
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+*.md
+
+# Go cache
+vendor/

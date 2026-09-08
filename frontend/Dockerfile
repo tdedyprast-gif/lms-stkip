@@ -1,63 +1,51 @@
+# =============================================================================
+# Frontend Dockerfile — CRA + CRACO → Nginx Static Server
+#
+# Stage 1 (builder): Build React app → output di /app/build
+# Stage 2 (runner) : Nginx alpine serve static files dari /app/build
+#
+# SSL TIDAK dikonfigurasi di sini — SSL dihandle oleh Nginx di host VPS.
+# Container ini hanya serve HTTP di port 80 (internal network saja).
+# =============================================================================
+
+# --- Stage 1: Build React Application ---
 FROM node:20-alpine AS builder
+
 WORKDIR /app
-COPY package.json ./
-# Jika proyek Anda menggunakan yarn.lock, copy juga filenya agar instalasi dependensi konsisten
-COPY yarn.lock* ./ 
-RUN yarn install
+
+# Copy dependency files dulu untuk memanfaatkan Docker layer cache
+COPY package.json yarn.lock* ./
+RUN yarn install --frozen-lockfile
+
+# Copy source code
 COPY . .
-ARG REACT_APP_BACKEND_URL
+
+# REACT_APP_BACKEND_URL dikirim dari docker-compose build args
+# Di VPS: nilainya /api (relative path, dihandle Nginx host)
+ARG REACT_APP_BACKEND_URL=/api
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 
-# Sesuai gambar, proyek Anda menggunakan Vite, ubah target output ke folder dist
+# Build production bundle (CRA + CRACO → output: /app/build)
 RUN yarn build
 
-FROM nginx:alpine
-# DIPERBAIKI: Mengubah /app/build menjadi /app/dist karena menggunakan Vite
+# --- Stage 2: Serve Static Files with Nginx ---
+FROM nginx:1.27-alpine AS runner
+
+# Hapus default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy nginx config untuk SPA (React Router support)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy hasil build dari stage 1
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Konfigurasi Nginx Baru mendukung SSL Gratis Let's Encrypt
-RUN echo 'server { \
-    listen 80; \
-    server_name api-backend.dwijacode.my.id; \
-    \
-    # Jalur wajib bagi Certbot untuk memvalidasi kepemilikan domain \
-    location /.well-known/acme-challenge/ { \
-    root /var/www/html; \
-    } \
-    \
-    # Mengalihkan semua lalu lintas HTTP biasa ke HTTPS \
-    location / { \
-    return 301 https://$host$request_uri; \
-    } \
-    } \
-    \
-    server { \
-    listen 443 ssl; \
-    server_name api-backend.dwijacode.my.id; \
-    \
-    # Lokasi Sertifikat SSL (Akan dibuat oleh Certbot nanti) \
-    ssl_certificate /etc/letsencrypt/live/dwijacode.my.id/fullchain.pem; \
-    ssl_certificate_key /etc/letsencrypt/live/dwijacode.my.id/privkey.pem; \
-    \
-    # Pengaturan Keamanan SSL Standar \
-    ssl_protocols TLSv1.2 TLSv1.3; \
-    ssl_ciphers HIGH:!aNULL:!MD5; \
-    \
-    location / { \
-    root /usr/share/nginx/html; \
-    index index.html index.htm; \
-    try_files $uri $uri/ /index.html; \
-    } \
-    \
-    location /api/ { \
-    proxy_pass http://backend-proxy:8001/; \
-    proxy_set_header Host $host; \
-    proxy_set_header X-Real-IP $remote_addr; \
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
-    proxy_set_header X-Forwarded-Proto $scheme; \
-    } \
-    }' > /etc/nginx/conf.d/default.conf
+# Pastikan file statis dapat dibaca oleh nginx user
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
 
-
+# Expose port 80 (HTTP internal — SSL ada di Nginx host VPS)
 EXPOSE 80
+
+# Jalankan Nginx di foreground
 CMD ["nginx", "-g", "daemon off;"]

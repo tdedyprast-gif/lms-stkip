@@ -1,0 +1,61 @@
+# .dockerignore untuk Frontend (CRA + CRACO)
+# Mencegah file yang tidak perlu masuk ke Docker build context
+# → Build lebih cepat, image lebih kecil, lebih aman
+
+# Dependencies (akan di-install fresh saat build)
+node_modules/
+.pnp/
+.pnp.js
+
+# Build output (akan di-generate saat build)
+build/
+dist/
+
+# Test files
+coverage/
+*.test.js
+*.test.tsx
+*.spec.js
+*.spec.tsx
+__tests__/
+
+# Development & environment files
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production.local
+
+# Source control
+.git/
+.gitignore
+.gitattributes
+
+# IDE & editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Documentation
+README.md
+*.md
