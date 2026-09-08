@@ -10,6 +10,8 @@
 
 # --- Stage 1: Build React Application ---
 FROM node:20-alpine AS builder
+RUN apk add --no-cache curl
+
 
 WORKDIR /app
 

@@ -1,5 +1,8 @@
 # DIPERBAIKI: Menurunkan versi ke 1.24 alpine karena versi 1.25 belum tersedia secara stabil
 FROM golang:1.25-alpine AS builder
+RUN apk add --no-cache curl
+
+
 
 WORKDIR /app
 COPY go.mod go.sum ./
