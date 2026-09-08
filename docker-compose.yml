@@ -1,29 +1,5 @@
-version: '3.8'
-
-# =============================================================================
-# LMS STKIP — Docker Compose (Production / VPS)
-#
-# ARSITEKTUR:
-#   Nginx host (dengan SSL) → reverse proxy ke container via 127.0.0.1 (loopback only)
-#
-# KEAMANAN:
-#   - Database & backend-go TIDAK memiliki port yang diekspose ke host
-#   - Hanya backend-proxy & frontend yang bind ke 127.0.0.1 (loopback), tidak 0.0.0.0
-#   - Semua container terisolasi dalam named network 'lms_stkip_net'
-#   - Network ini terpisah dari proyek lain di VPS yang sama
-#
-# PORT YANG DIGUNAKAN DI HOST (loopback only):
-#   - 127.0.0.1:3001 → frontend   (port 3000 sudah dipakai Grafana)
-#   - 127.0.0.1:8001 → backend-proxy
-# =============================================================================
-
 services:
 
-  # ---------------------------------------------------------------------------
-  # DATABASE — PostgreSQL
-  # TIDAK ada port yang diekspose ke host. Hanya bisa diakses oleh
-  # container lain dalam network 'lms_stkip_net'.
-  # ---------------------------------------------------------------------------
   db:
     image: postgres:15-alpine
     container_name: lms_stkip_db
@@ -51,11 +27,6 @@ services:
       - "com.lms-stkip.service=database"
       - "com.lms-stkip.environment=production"
 
-  # ---------------------------------------------------------------------------
-  # BACKEND — Go Application Server
-  # TIDAK ada port yang diekspose ke host. Hanya bisa diakses oleh
-  # backend-proxy dalam network yang sama.
-  # ---------------------------------------------------------------------------
   backend-go:
     build:
       context: ./backend
@@ -86,11 +57,6 @@ services:
       - "com.lms-stkip.service=backend-go"
       - "com.lms-stkip.environment=production"
 
-  # ---------------------------------------------------------------------------
-  # BACKEND PROXY — Python/Uvicorn (FastAPI)
-  # Menjadi jembatan antara Nginx host dan backend-go.
-  # Hanya bind ke 127.0.0.1 (loopback) — tidak bisa diakses dari luar VPS.
-  # ---------------------------------------------------------------------------
   backend-proxy:
     build:
       context: ./backend
@@ -118,11 +84,6 @@ services:
       - "com.lms-stkip.service=backend-proxy"
       - "com.lms-stkip.environment=production"
 
-  # ---------------------------------------------------------------------------
-  # FRONTEND — React (CRA + CRACO) → Static files via Nginx dalam container
-  # Hanya bind ke 127.0.0.1:3001 (loopback) — tidak bisa diakses dari luar VPS.
-  # Port 3000 TIDAK digunakan karena sudah dipakai Grafana.
-  # ---------------------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
@@ -148,22 +109,12 @@ services:
       - "com.lms-stkip.service=frontend"
       - "com.lms-stkip.environment=production"
 
-# =============================================================================
-# VOLUMES — Data yang persisten di VPS
-# =============================================================================
 volumes:
   postgres_data:
     name: lms_stkip_postgres_data
   uploads_data:
     name: lms_stkip_uploads_data
 
-# =============================================================================
-# NETWORKS — Isolasi per-aplikasi
-#
-# Named network 'lms_stkip_net' memastikan hanya container LMS STKIP yang
-# bisa saling berkomunikasi. Container dari proyek lain di VPS yang sama
-# (Grafana, Portainer, dll) tidak memiliki akses ke network ini.
-# =============================================================================
 networks:
   lms_stkip_net:
     name: lms_stkip_net
