@@ -10,7 +10,7 @@ import { GraduationCap, LogIn, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const HERO =
-  "https://images.pexels.com/photos/7972324/pexels-photo-7972324.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=900&w=1200";
+  "https://scontent.fmlg11-1.fna.fbcdn.net/v/t39.30808-6/476438280_647333437879061_1472467495168070808_n.jpg?stp=dst-jpg_tt6&cstp=mx1024x768&ctp=s1024x768&_nc_cat=111&_nc_map=urlgen_bucketless&ccb=1-7&_nc_sid=cc71e4&_nc_ohc=NGHTOLZRu00Q7kNvwFlQRR1&_nc_oc=AdrQfvqbTNmcdc_cTnc0Er8m6-a2ZUWMBfrbMx76iAE8LdwBcHqhciq-1jw-Jd5mlYOg24ljPaTlIQ5kGihwF4UR&_nc_zt=23&_nc_ht=scontent.fmlg11-1.fna&_nc_gid=juhBDHU_CDBDpREnklfsyQ&_nc_ss=7b289&oh=00_AQJyAGQwVaPCOYjOTtgmzuEARkFU5iwQzVaikTCk2aFKtg&oe=6AA839D8";
 
 // const DEMO = [
 //   { label: "Dosen", email: "dosen@stkippacitan.ac.id", password: "dosen123" },
