@@ -55,7 +55,12 @@ async def proxy(path: str, request: Request):
         if k.lower() != "host"
     }
 
-    url = "/api/" + path
+    # Bersihkan jika path mengandung awalan 'api/' ganda
+    cleaned_path = path.lstrip("/")
+    if cleaned_path.startswith("api/"):
+        cleaned_path = cleaned_path[4:]
+
+    url = "/api/" + cleaned_path
 
     try:
         upstream = await client.request(
