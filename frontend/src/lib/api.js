@@ -1,7 +1,9 @@
 import axios from "axios";
 
+// REACT_APP_BACKEND_URL sudah berisi full base path (misal: /api atau https://domain.com/api)
+// Tidak perlu menambahkan /api lagi di sini
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-export const API = `${BACKEND_URL}`;
+export const API = BACKEND_URL;
 
 const api = axios.create({ baseURL: API });
 
