@@ -29,6 +29,9 @@ function navItems(role) {
     items.push({ to: "/admin/users", label: "Pengguna", short: "Pengguna", icon: Users, testid: "nav-users" });
     items.push({ to: "/admin/cpl", label: "CPL Prodi", short: "CPL", icon: Target, testid: "nav-cpl" });
   }
+  if (role === "dosen") {
+    items.push({ to: "/admin/cpl", label: "CPL Prodi", short: "CPL", icon: Target, testid: "nav-cpl" });
+  }
   return items;
 }
 
