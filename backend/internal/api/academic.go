@@ -85,11 +85,23 @@ func (s *Server) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"ok": true})
 }
 
+// ---------- Program Studi ----------
+
+func (s *Server) ListProdi(c *gin.Context) {
+	var prodis []models.Prodi
+	s.DB.Order("code asc").Find(&prodis)
+	c.JSON(http.StatusOK, prodis)
+}
+
 // ---------- CPL ----------
 
 func (s *Server) ListCPL(c *gin.Context) {
 	var cpls []models.CPL
-	s.DB.Order("code asc").Find(&cpls)
+	q := s.DB.Preload("Prodi").Order("code asc")
+	if prodiID := c.Query("prodi_id"); prodiID != "" {
+		q = q.Where("prodi_id = ?", prodiID)
+	}
+	q.Find(&cpls)
 	c.JSON(http.StatusOK, cpls)
 }
 
@@ -99,6 +111,7 @@ func (s *Server) CreateCPL(c *gin.Context) {
 		return
 	}
 	s.DB.Create(&cpl)
+	s.DB.Preload("Prodi").First(&cpl, "id = ?", cpl.ID)
 	c.JSON(http.StatusOK, cpl)
 }
 
@@ -113,7 +126,11 @@ func (s *Server) UpdateCPL(c *gin.Context) {
 	cpl.Code = body.Code
 	cpl.Description = body.Description
 	cpl.Domain = body.Domain
+	if body.ProdiID != "" {
+		cpl.ProdiID = body.ProdiID
+	}
 	s.DB.Save(&cpl)
+	s.DB.Preload("Prodi").First(&cpl, "id = ?", cpl.ID)
 	c.JSON(http.StatusOK, cpl)
 }
 
@@ -128,7 +145,10 @@ func (s *Server) ListCourses(c *gin.Context) {
 	var courses []models.Course
 	role := currentRole(c)
 	uid := currentUserID(c)
-	q := s.DB.Preload("Lecturer").Order("created_at desc")
+	q := s.DB.Preload("Lecturer").Preload("Prodi").Order("created_at desc")
+	if prodiID := c.Query("prodi_id"); prodiID != "" {
+		q = q.Where("prodi_id = ?", prodiID)
+	}
 	switch role {
 	case "dosen":
 		q = q.Where("lecturer_id = ?", uid)
@@ -147,7 +167,7 @@ func (s *Server) ListCourses(c *gin.Context) {
 
 func (s *Server) GetCourse(c *gin.Context) {
 	var course models.Course
-	if err := s.DB.Preload("Lecturer").First(&course, "id = ?", c.Param("id")).Error; err != nil {
+	if err := s.DB.Preload("Lecturer").Preload("Prodi").First(&course, "id = ?", c.Param("id")).Error; err != nil {
 		fail(c, http.StatusNotFound, "mata kuliah tidak ditemukan")
 		return
 	}
@@ -163,7 +183,7 @@ func (s *Server) CreateCourse(c *gin.Context) {
 		course.LecturerID = currentUserID(c)
 	}
 	s.DB.Create(&course)
-	s.DB.Preload("Lecturer").First(&course, "id = ?", course.ID)
+	s.DB.Preload("Lecturer").Preload("Prodi").First(&course, "id = ?", course.ID)
 	c.JSON(http.StatusOK, course)
 }
 
@@ -183,8 +203,11 @@ func (s *Server) UpdateCourse(c *gin.Context) {
 	if body.LecturerID != "" {
 		course.LecturerID = body.LecturerID
 	}
+	if body.ProdiID != "" {
+		course.ProdiID = body.ProdiID
+	}
 	s.DB.Save(&course)
-	s.DB.Preload("Lecturer").First(&course, "id = ?", course.ID)
+	s.DB.Preload("Lecturer").Preload("Prodi").First(&course, "id = ?", course.ID)
 	c.JSON(http.StatusOK, course)
 }
 
