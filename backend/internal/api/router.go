@@ -48,6 +48,9 @@ func (s *Server) Router() *gin.Engine {
 		auth.PUT("/users/:id", s.RequireRole("admin"), s.UpdateUser)
 		auth.DELETE("/users/:id", s.RequireRole("admin"), s.DeleteUser)
 
+		// Program Studi
+		auth.GET("/prodi", s.ListProdi)
+
 		// CPL
 		auth.GET("/cpl", s.ListCPL)
 		auth.POST("/cpl", s.RequireRole("admin", "dosen"), s.CreateCPL)

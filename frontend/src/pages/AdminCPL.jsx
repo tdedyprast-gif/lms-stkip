@@ -24,7 +24,13 @@ const domainColor = {
 
 export default function AdminCPL() {
   const [cpls, setCpls] = useState([]);
-  const load = () => api.get("/cpl").then((r) => setCpls(r.data || []));
+  const [prodis, setProdis] = useState([]);
+  const [prodiFilter, setProdiFilter] = useState("all");
+
+  const load = () => {
+    api.get("/prodi").then((r) => setProdis(r.data || [])).catch(() => {});
+    api.get("/cpl").then((r) => setCpls(r.data || []));
+  };
   useEffect(() => { load(); }, []);
 
   const create = async (form) => {
@@ -33,27 +39,67 @@ export default function AdminCPL() {
   };
   const del = async (id) => { await api.delete(`/cpl/${id}`); toast.success("Dihapus"); load(); };
 
+  const filtered = prodiFilter === "all"
+    ? cpls
+    : cpls.filter((c) => c.prodi_id === prodiFilter);
+
+  // Group by prodi for display
+  const grouped = {};
+  filtered.forEach((c) => {
+    const key = c.prodi?.code || "Lainnya";
+    if (!grouped[key]) grouped[key] = { name: c.prodi?.name || "Tanpa Prodi", items: [] };
+    grouped[key].items.push(c);
+  });
+
   return (
     <div className="fade-up">
       <PageHeader title="Capaian Pembelajaran Lulusan (CPL)" subtitle="Standar capaian tingkat program studi." testid="cpl-header">
-        <CreateDialog onCreate={create} />
+        <CreateDialog onCreate={create} prodis={prodis} />
       </PageHeader>
+
+      {prodis.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            onClick={() => setProdiFilter("all")}
+            className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === "all" ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
+            data-testid="filter-cpl-all"
+          >Semua Prodi</button>
+          {prodis.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setProdiFilter(p.id)}
+              className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === p.id ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
+              data-testid={`filter-cpl-${p.code}`}
+            >{p.code}</button>
+          ))}
+        </div>
+      )}
 
       {cpls.length === 0 ? (
         <Card><EmptyState icon={Target} title="Belum ada CPL" subtitle="Definisikan CPL prodi untuk dipetakan ke CPMK." /></Card>
+      ) : Object.entries(grouped).length === 0 ? (
+        <Card><EmptyState icon={Target} title="Tidak ada CPL" subtitle="Tidak ada CPL untuk filter prodi ini." /></Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {cpls.map((c) => (
-            <Card key={c.id} className="p-5 card-lift" data-testid={`cpl-card-${c.code}`}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-primary text-primary-foreground font-bold">{c.code}</Badge>
-                  <Badge variant="secondary" className={domainColor[c.domain]}>{c.domain}</Badge>
-                </div>
-                <Button variant="ghost" size="icon" onClick={() => del(c.id)} data-testid={`del-cpl-${c.code}`}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        <div className="space-y-6">
+          {Object.entries(grouped).map(([code, group]) => (
+            <div key={code}>
+              <h3 className="font-heading font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">{group.name}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {group.items.map((c) => (
+                  <Card key={c.id} className="p-5 card-lift" data-testid={`cpl-card-${c.code}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className="bg-primary text-primary-foreground font-bold">{c.code}</Badge>
+                        <Badge variant="secondary" className={domainColor[c.domain]}>{c.domain}</Badge>
+                        {c.prodi?.code && <Badge variant="outline" className="text-[10px]">{c.prodi.code}</Badge>}
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => del(c.id)} data-testid={`del-cpl-${c.code}`}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </div>
+                    <p className="text-sm mt-3 leading-relaxed">{c.description}</p>
+                  </Card>
+                ))}
               </div>
-              <p className="text-sm mt-3 leading-relaxed">{c.description}</p>
-            </Card>
+            </div>
           ))}
         </div>
       )}
@@ -61,15 +107,24 @@ export default function AdminCPL() {
   );
 }
 
-function CreateDialog({ onCreate }) {
+function CreateDialog({ onCreate, prodis }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ code: "", domain: "Pengetahuan", description: "" });
+  const [form, setForm] = useState({ code: "", domain: "Pengetahuan", description: "", prodi_id: "" });
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button className="rounded-full" data-testid="add-cpl-button"><Plus className="h-4 w-4 mr-1" /> Tambah CPL</Button></DialogTrigger>
       <DialogContent>
         <DialogHeader><DialogTitle className="font-heading">Tambah CPL</DialogTitle></DialogHeader>
         <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Program Studi</Label>
+            <Select value={form.prodi_id} onValueChange={(v) => setForm({ ...form, prodi_id: v })}>
+              <SelectTrigger data-testid="cpl-prodi"><SelectValue placeholder="Pilih prodi" /></SelectTrigger>
+              <SelectContent>
+                {prodis.map((p) => <SelectItem key={p.id} value={p.id}>{p.code} — {p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5"><Label>Kode</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="CPL-1" data-testid="cpl-code" /></div>
             <div className="space-y-1.5">
@@ -82,7 +137,7 @@ function CreateDialog({ onCreate }) {
           </div>
           <div className="space-y-1.5"><Label>Deskripsi</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="cpl-desc" /></div>
         </div>
-        <DialogFooter><Button onClick={() => { onCreate(form); setOpen(false); setForm({ code: "", domain: "Pengetahuan", description: "" }); }} data-testid="save-cpl-button">Simpan</Button></DialogFooter>
+        <DialogFooter><Button onClick={() => { onCreate(form); setOpen(false); setForm({ code: "", domain: "Pengetahuan", description: "", prodi_id: "" }); }} data-testid="save-cpl-button">Simpan</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );

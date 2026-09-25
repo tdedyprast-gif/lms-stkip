@@ -62,7 +62,7 @@ export default function CourseDetail() {
       <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <span className="text-xs uppercase tracking-wider font-bold text-primary bg-primary/10 rounded-full px-2.5 py-1">{course.code}</span>
-          <h1 className="font-heading text-3xl font-bold tracking-tight mt-2">{course.name}</h1>
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold tracking-tight mt-2">{course.name}</h1>
           <p className="text-muted-foreground mt-1">{course.sks} SKS · Semester {course.semester} · {course.lecturer?.name || "—"}</p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function CourseDetail() {
 
         <div className="mt-6">
           <TabsContent value="overview"><RpsTab course={course} canEdit={isTeacher} /></TabsContent>
-          <TabsContent value="obe"><ObeTab courseId={id} canEdit={isTeacher} /></TabsContent>
+          <TabsContent value="obe"><ObeTab courseId={id} canEdit={isTeacher} course={course} /></TabsContent>
           {isTeacher && <TabsContent value="students"><StudentsTab courseId={id} /></TabsContent>}
           {isTeacher && <TabsContent value="assessment"><AssessmentTab courseId={id} /></TabsContent>}
           {isTeacher && <TabsContent value="grades"><GradesTab courseId={id} /></TabsContent>}

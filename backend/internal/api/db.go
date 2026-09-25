@@ -20,6 +20,7 @@ func ConnectDB(cfg config.Config) *gorm.DB {
 	}
 	if err := db.AutoMigrate(
 		&models.User{},
+		&models.Prodi{},
 		&models.CPL{},
 		&models.Course{},
 		&models.CPMK{},
@@ -40,5 +41,28 @@ func ConnectDB(cfg config.Config) *gorm.DB {
 	); err != nil {
 		log.Fatalf("failed to migrate: %v", err)
 	}
+
+	// Seed 8 program studi if empty
+	var count int64
+	db.Model(&models.Prodi{}).Count(&count)
+	if count == 0 {
+		prodiList := []models.Prodi{
+			{Code: "PSEJ", Name: "Program Studi Pendidikan Sejarah"},
+			{Code: "PMAT", Name: "Program Studi Pendidikan Matematika"},
+			{Code: "PBSI", Name: "Program Studi Pendidikan Bahasa dan Sastra Indonesia"},
+			{Code: "PBI", Name: "Program Studi Pendidikan Bahasa Inggris"},
+			{Code: "PJKR", Name: "Program Studi Pendidikan Jasmani Kesehatan dan Rekreasi"},
+			{Code: "PIN", Name: "Program Studi Pendidikan Informatika"},
+			{Code: "PGSD", Name: "Program Studi Pendidikan Guru Sekolah Dasar"},
+			{Code: "PPG", Name: "Program Studi Pendidikan Profesi Guru"},
+		}
+		for i := range prodiList {
+			if err := db.Create(&prodiList[i]).Error; err != nil {
+				log.Printf("seed prodi %s: %v", prodiList[i].Code, err)
+			}
+		}
+		log.Printf("seeded %d program studi", len(prodiList))
+	}
+
 	return db
 }

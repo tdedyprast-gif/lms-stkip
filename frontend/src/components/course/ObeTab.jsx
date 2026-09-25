@@ -17,16 +17,17 @@ import { EmptyState } from "@/components/common";
 import { Target, Plus, ChevronRight, Trash2, Link2, Layers } from "lucide-react";
 import { toast } from "sonner";
 
-export default function ObeTab({ courseId, canEdit }) {
+export default function ObeTab({ courseId, canEdit, course }) {
   const [cpmks, setCpmks] = useState([]);
   const [cpls, setCpls] = useState([]);
   const [openIds, setOpenIds] = useState({});
 
   const load = () => {
     api.get(`/courses/${courseId}/cpmk`).then((r) => setCpmks(r.data || []));
-    api.get(`/cpl`).then((r) => setCpls(r.data || []));
+    const cplUrl = course?.prodi_id ? `/cpl?prodi_id=${course.prodi_id}` : `/cpl`;
+    api.get(cplUrl).then((r) => setCpls(r.data || []));
   };
-  useEffect(() => { load(); }, [courseId]);
+  useEffect(() => { load(); }, [courseId, course?.prodi_id]);
 
   const addCpmk = async (form) => {
     try { await api.post(`/cpmk`, { ...form, course_id: courseId, threshold: Number(form.threshold) }); toast.success("CPMK ditambahkan"); load(); }

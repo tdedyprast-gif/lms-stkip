@@ -32,12 +32,21 @@ type User struct {
 	Prodi        string `json:"prodi"`
 }
 
-// CPL - Capaian Pembelajaran Lulusan (program level)
+// Program Studi
+type Prodi struct {
+	Base
+	Code string `gorm:"uniqueIndex" json:"code"`
+	Name string `json:"name"`
+}
+
+// CPL - Capaian Pembelajaran Lulusan (program level, per prodi)
 type CPL struct {
 	Base
 	Code        string `json:"code"`
 	Description string `json:"description"`
 	Domain      string `json:"domain"`
+	ProdiID     string `gorm:"type:uuid;index" json:"prodi_id"`
+	Prodi       *Prodi `gorm:"foreignKey:ProdiID" json:"prodi,omitempty"`
 }
 
 type Course struct {
@@ -49,6 +58,8 @@ type Course struct {
 	Description string `json:"description"`
 	LecturerID  string `gorm:"type:uuid" json:"lecturer_id"`
 	Lecturer    *User  `gorm:"foreignKey:LecturerID" json:"lecturer,omitempty"`
+	ProdiID     string `gorm:"type:uuid;index" json:"prodi_id"`
+	Prodi       *Prodi `gorm:"foreignKey:ProdiID" json:"prodi,omitempty"`
 }
 
 type CPMK struct {

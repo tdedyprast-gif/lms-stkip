@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -19,12 +23,17 @@ export default function Courses() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState(null);
+  const [prodis, setProdis] = useState([]);
+  const [prodiFilter, setProdiFilter] = useState("all");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ code: "", name: "", sks: 3, semester: 1, description: "" });
+  const [form, setForm] = useState({ code: "", name: "", sks: 3, semester: 1, description: "", prodi_id: "" });
 
   const canManage = user.role === "admin" || user.role === "dosen";
 
-  const load = () => api.get("/courses").then((r) => setCourses(r.data)).catch(() => setCourses([]));
+  const load = () => {
+    api.get("/prodi").then((r) => setProdis(r.data || [])).catch(() => {});
+    api.get("/courses").then((r) => setCourses(r.data)).catch(() => setCourses([]));
+  };
   useEffect(() => { load(); }, []);
 
   const create = async () => {
@@ -32,9 +41,18 @@ export default function Courses() {
       await api.post("/courses", { ...form, sks: Number(form.sks), semester: Number(form.semester) });
       toast.success("Mata kuliah dibuat");
       setOpen(false);
-      setForm({ code: "", name: "", sks: 3, semester: 1, description: "" });
+      setForm({ code: "", name: "", sks: 3, semester: 1, description: "", prodi_id: "" });
       load();
     } catch (e) { toast.error(apiError(e)); }
+  };
+
+  const filtered = prodiFilter === "all"
+    ? (courses || [])
+    : (courses || []).filter((c) => c.prodi_id === prodiFilter);
+
+  const prodiName = (id) => {
+    const p = prodis.find((x) => x.id === id);
+    return p ? p.code : "";
   };
 
   return (
@@ -48,6 +66,15 @@ export default function Courses() {
             <DialogContent data-testid="course-dialog">
               <DialogHeader><DialogTitle className="font-heading">Tambah Mata Kuliah</DialogTitle></DialogHeader>
               <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Program Studi</Label>
+                  <Select value={form.prodi_id} onValueChange={(v) => setForm({ ...form, prodi_id: v })}>
+                    <SelectTrigger data-testid="course-prodi"><SelectValue placeholder="Pilih prodi" /></SelectTrigger>
+                    <SelectContent>
+                      {prodis.map((p) => <SelectItem key={p.id} value={p.id}>{p.code} — {p.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5"><Label>Kode</Label><Input data-testid="course-code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="TIF301" /></div>
                   <div className="space-y-1.5"><Label>SKS</Label><Input type="number" data-testid="course-sks" value={form.sks} onChange={(e) => setForm({ ...form, sks: e.target.value })} /></div>
@@ -69,30 +96,52 @@ export default function Courses() {
       ) : courses.length === 0 ? (
         <Card><EmptyState icon={BookOpen} title="Belum ada mata kuliah" subtitle={canManage ? "Tambahkan mata kuliah pertama Anda." : "Anda belum terdaftar pada mata kuliah manapun."} /></Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {courses.map((c) => (
-            <Card
-              key={c.id}
-              onClick={() => navigate(`/courses/${c.id}`)}
-              className="p-6 card-lift cursor-pointer relative overflow-hidden group"
-              data-testid={`course-card-${c.code}`}
-            >
-              <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-primary/5 -mr-8 -mt-8 group-hover:bg-primary/10 transition-colors" />
-              <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wider font-bold text-primary bg-primary/10 rounded-full px-2.5 py-1">{c.code}</span>
-                <span className="text-xs text-muted-foreground">{c.sks} SKS · Smt {c.semester}</span>
-              </div>
-              <h3 className="font-heading font-semibold text-lg mt-4 relative">{c.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{c.description}</p>
-              <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <User className="h-4 w-4" /> {c.lecturer?.name || "—"}
-                </span>
-                <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Card>
-          ))}
-        </div>
+        <>
+          {prodis.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              <button
+                onClick={() => setProdiFilter("all")}
+                className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === "all" ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
+                data-testid="filter-prodi-all"
+              >Semua Prodi</button>
+              {prodis.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setProdiFilter(p.id)}
+                  className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === p.id ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
+                  data-testid={`filter-prodi-${p.code}`}
+                >{p.code}</button>
+              ))}
+            </div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((c) => (
+              <Card
+                key={c.id}
+                onClick={() => navigate(`/courses/${c.id}`)}
+                className="p-6 card-lift cursor-pointer relative overflow-hidden group"
+                data-testid={`course-card-${c.code}`}
+              >
+                <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-primary/5 -mr-8 -mt-8 group-hover:bg-primary/10 transition-colors" />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs uppercase tracking-wider font-bold text-primary bg-primary/10 rounded-full px-2.5 py-1">{c.code}</span>
+                  <div className="flex items-center gap-1.5">
+                    {c.prodi?.code && <Badge variant="outline" className="text-[10px]">{c.prodi.code}</Badge>}
+                    <span className="text-xs text-muted-foreground">{c.sks} SKS · Smt {c.semester}</span>
+                  </div>
+                </div>
+                <h3 className="font-heading font-semibold text-lg mt-4 relative">{c.name}</h3>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{c.description}</p>
+                <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
+                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <User className="h-4 w-4" /> {c.lecturer?.name || "—"}
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
