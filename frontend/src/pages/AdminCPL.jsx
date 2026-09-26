@@ -13,7 +13,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { PageHeader, EmptyState } from "@/components/common";
-import { Target, Plus, Trash2 } from "lucide-react";
+import { Target, Plus, Trash2, Pencil, School } from "lucide-react";
 import { toast } from "sonner";
 
 const domains = ["Sikap", "Pengetahuan", "Keterampilan Umum", "Keterampilan Khusus"];
@@ -26,6 +26,7 @@ export default function AdminCPL() {
   const [cpls, setCpls] = useState([]);
   const [prodis, setProdis] = useState([]);
   const [prodiFilter, setProdiFilter] = useState("all");
+  const [editCpl, setEditCpl] = useState(null);
 
   const load = () => {
     api.get("/prodi").then((r) => setProdis(r.data || [])).catch(() => {});
@@ -37,11 +38,22 @@ export default function AdminCPL() {
     try { await api.post("/cpl", form); toast.success("CPL ditambahkan"); load(); }
     catch (e) { toast.error(apiError(e)); }
   };
+
+  const update = async (id, form) => {
+    try { await api.put(`/cpl/${id}`, form); toast.success("CPL diperbarui"); setEditCpl(null); load(); }
+    catch (e) { toast.error(apiError(e)); }
+  };
+
   const del = async (id) => { await api.delete(`/cpl/${id}`); toast.success("Dihapus"); load(); };
+
+  const createProdi = async (form) => {
+    try { await api.post("/prodi", form); toast.success("Program studi ditambahkan"); load(); }
+    catch (e) { toast.error(apiError(e)); }
+  };
 
   const filtered = prodiFilter === "all"
     ? cpls
-    : cpls.filter((c) => c.prodi_id === prodiFilter);
+    : cpls.filter((c) => c.prodi_code === prodiFilter);
 
   // Group by prodi for display
   const grouped = {};
@@ -54,7 +66,10 @@ export default function AdminCPL() {
   return (
     <div className="fade-up">
       <PageHeader title="Capaian Pembelajaran Lulusan (CPL)" subtitle="Standar capaian tingkat program studi." testid="cpl-header">
-        <CreateDialog onCreate={create} prodis={prodis} />
+        <div className="flex items-center gap-2">
+          <CreateProdiDialog onCreate={createProdi} />
+          <CreateDialog onCreate={create} prodis={prodis} />
+        </div>
       </PageHeader>
 
       {prodis.length > 0 && (
@@ -67,8 +82,8 @@ export default function AdminCPL() {
           {prodis.map((p) => (
             <button
               key={p.id}
-              onClick={() => setProdiFilter(p.id)}
-              className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === p.id ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
+              onClick={() => setProdiFilter(p.code)}
+              className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === p.code ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
               data-testid={`filter-cpl-${p.code}`}
             >{p.code}</button>
           ))}
@@ -93,7 +108,14 @@ export default function AdminCPL() {
                         <Badge variant="secondary" className={domainColor[c.domain]}>{c.domain}</Badge>
                         {c.prodi?.code && <Badge variant="outline" className="text-[10px]">{c.prodi.code}</Badge>}
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => del(c.id)} data-testid={`del-cpl-${c.code}`}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setEditCpl(c)} data-testid={`edit-cpl-${c.code}`}>
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => del(c.id)} data-testid={`del-cpl-${c.code}`}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </div>
                     <p className="text-sm mt-3 leading-relaxed">{c.description}</p>
                   </Card>
@@ -103,13 +125,80 @@ export default function AdminCPL() {
           ))}
         </div>
       )}
+
+      {/* Edit CPL Dialog */}
+      {editCpl && (
+        <EditCPLDialog
+          cpl={editCpl}
+          prodis={prodis}
+          onUpdate={(form) => update(editCpl.id, form)}
+          onClose={() => setEditCpl(null)}
+        />
+      )}
     </div>
   );
 }
 
+/* ────────────────────────────────────────
+   Create Prodi Dialog
+   ──────────────────────────────────────── */
+function CreateProdiDialog({ onCreate }) {
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ code: "", name: "" });
+
+  const handleSave = () => {
+    if (!form.code || !form.name) {
+      toast.error("Kode dan nama prodi wajib diisi");
+      return;
+    }
+    onCreate(form);
+    setOpen(false);
+    setForm({ code: "", name: "" });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="rounded-full" data-testid="add-prodi-button">
+          <School className="h-4 w-4 mr-1" /> Tambah Prodi
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle className="font-heading">Tambah Program Studi</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Kode Prodi</Label>
+            <Input
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+              placeholder="Contoh: PIN"
+              data-testid="prodi-code"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Nama Program Studi</Label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Program Studi Pendidikan Informatika"
+              data-testid="prodi-name"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleSave} data-testid="save-prodi-button">Simpan</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ────────────────────────────────────────
+   Create CPL Dialog
+   ──────────────────────────────────────── */
 function CreateDialog({ onCreate, prodis }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ code: "", domain: "Pengetahuan", description: "", prodi_id: "" });
+  const [form, setForm] = useState({ code: "", domain: "Pengetahuan", description: "", prodi_code: "" });
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button className="rounded-full" data-testid="add-cpl-button"><Plus className="h-4 w-4 mr-1" /> Tambah CPL</Button></DialogTrigger>
@@ -118,10 +207,10 @@ function CreateDialog({ onCreate, prodis }) {
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label>Program Studi</Label>
-            <Select value={form.prodi_id} onValueChange={(v) => setForm({ ...form, prodi_id: v })}>
+            <Select value={form.prodi_code} onValueChange={(v) => setForm({ ...form, prodi_code: v })}>
               <SelectTrigger data-testid="cpl-prodi"><SelectValue placeholder="Pilih prodi" /></SelectTrigger>
               <SelectContent>
-                {prodis.map((p) => <SelectItem key={p.id} value={p.id}>{p.code} — {p.name}</SelectItem>)}
+                {prodis.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} — {p.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -137,7 +226,61 @@ function CreateDialog({ onCreate, prodis }) {
           </div>
           <div className="space-y-1.5"><Label>Deskripsi</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="cpl-desc" /></div>
         </div>
-        <DialogFooter><Button onClick={() => { onCreate(form); setOpen(false); setForm({ code: "", domain: "Pengetahuan", description: "", prodi_id: "" }); }} data-testid="save-cpl-button">Simpan</Button></DialogFooter>
+        <DialogFooter><Button onClick={() => { onCreate(form); setOpen(false); setForm({ code: "", domain: "Pengetahuan", description: "", prodi_code: "" }); }} data-testid="save-cpl-button">Simpan</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ────────────────────────────────────────
+   Edit CPL Dialog
+   ──────────────────────────────────────── */
+function EditCPLDialog({ cpl, prodis, onUpdate, onClose }) {
+  const [form, setForm] = useState({
+    code: cpl.code || "",
+    domain: cpl.domain || "Pengetahuan",
+    description: cpl.description || "",
+    prodi_code: cpl.prodi_code || "",
+  });
+
+  const handleSave = () => {
+    if (!form.code || !form.description) {
+      toast.error("Kode dan deskripsi wajib diisi");
+      return;
+    }
+    onUpdate(form);
+  };
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle className="font-heading">Edit CPL</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Program Studi</Label>
+            <Select value={form.prodi_code} onValueChange={(v) => setForm({ ...form, prodi_code: v })}>
+              <SelectTrigger data-testid="edit-cpl-prodi"><SelectValue placeholder="Pilih prodi" /></SelectTrigger>
+              <SelectContent>
+                {prodis.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} — {p.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><Label>Kode</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} data-testid="edit-cpl-code" /></div>
+            <div className="space-y-1.5">
+              <Label>Domain</Label>
+              <Select value={form.domain} onValueChange={(v) => setForm({ ...form, domain: v })}>
+                <SelectTrigger data-testid="edit-cpl-domain"><SelectValue /></SelectTrigger>
+                <SelectContent>{domains.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-1.5"><Label>Deskripsi</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="edit-cpl-desc" /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Batal</Button>
+          <Button onClick={handleSave} data-testid="update-cpl-button">Simpan Perubahan</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

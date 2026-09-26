@@ -26,7 +26,7 @@ export default function Courses() {
   const [prodis, setProdis] = useState([]);
   const [prodiFilter, setProdiFilter] = useState("all");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ code: "", name: "", sks: 3, semester: 1, description: "", prodi_id: "" });
+  const [form, setForm] = useState({ code: "", name: "", sks: 3, semester: 1, description: "", prodi_code: "" });
 
   const canManage = user.role === "admin" || user.role === "dosen";
 
@@ -41,17 +41,17 @@ export default function Courses() {
       await api.post("/courses", { ...form, sks: Number(form.sks), semester: Number(form.semester) });
       toast.success("Mata kuliah dibuat");
       setOpen(false);
-      setForm({ code: "", name: "", sks: 3, semester: 1, description: "", prodi_id: "" });
+      setForm({ code: "", name: "", sks: 3, semester: 1, description: "", prodi_code: "" });
       load();
     } catch (e) { toast.error(apiError(e)); }
   };
 
   const filtered = prodiFilter === "all"
     ? (courses || [])
-    : (courses || []).filter((c) => c.prodi_id === prodiFilter);
+    : (courses || []).filter((c) => c.prodi_code === prodiFilter);
 
-  const prodiName = (id) => {
-    const p = prodis.find((x) => x.id === id);
+  const prodiName = (code) => {
+    const p = prodis.find((x) => x.code === code);
     return p ? p.code : "";
   };
 
@@ -68,10 +68,10 @@ export default function Courses() {
               <div className="space-y-3">
                 <div className="space-y-1.5">
                   <Label>Program Studi</Label>
-                  <Select value={form.prodi_id} onValueChange={(v) => setForm({ ...form, prodi_id: v })}>
+                  <Select value={form.prodi_code} onValueChange={(v) => setForm({ ...form, prodi_code: v })}>
                     <SelectTrigger data-testid="course-prodi"><SelectValue placeholder="Pilih prodi" /></SelectTrigger>
                     <SelectContent>
-                      {prodis.map((p) => <SelectItem key={p.id} value={p.id}>{p.code} — {p.name}</SelectItem>)}
+                      {prodis.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} — {p.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -107,8 +107,8 @@ export default function Courses() {
               {prodis.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => setProdiFilter(p.id)}
-                  className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === p.id ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
+                  onClick={() => setProdiFilter(p.code)}
+                  className={`text-xs font-medium rounded-full px-3 py-1.5 transition-colors ${prodiFilter === p.code ? "bg-primary text-primary-foreground" : "bg-accent text-muted-foreground hover:bg-accent/80"}`}
                   data-testid={`filter-prodi-${p.code}`}
                 >{p.code}</button>
               ))}

@@ -14,7 +14,7 @@ import (
 
 func (s *Server) ListUsers(c *gin.Context) {
 	var users []models.User
-	q := s.DB.Order("created_at desc")
+	q := s.DB.Preload("Prodi").Order("created_at desc")
 	if role := c.Query("role"); role != "" {
 		q = q.Where("role = ?", role)
 	}
@@ -42,7 +42,7 @@ func (s *Server) CreateUser(c *gin.Context) {
 	if role == "" {
 		role = "mahasiswa"
 	}
-	u := models.User{Name: req.Name, Email: email, PasswordHash: hash, Role: role, NIM: req.NIM, NIDN: req.NIDN, Prodi: req.Prodi}
+	u := models.User{Name: req.Name, Email: email, PasswordHash: hash, Role: role, NIM: req.NIM, NIDN: req.NIDN, ProdiCode: req.ProdiCode}
 	if err := s.DB.Create(&u).Error; err != nil {
 		fail(c, http.StatusBadRequest, err.Error())
 		return
@@ -70,8 +70,8 @@ func (s *Server) UpdateUser(c *gin.Context) {
 	if req.NIDN != "" {
 		u.NIDN = req.NIDN
 	}
-	if req.Prodi != "" {
-		u.Prodi = req.Prodi
+	if req.ProdiCode != "" {
+		u.ProdiCode = req.ProdiCode
 	}
 	if req.Password != "" {
 		u.PasswordHash, _ = hashPassword(req.Password)
@@ -93,13 +93,50 @@ func (s *Server) ListProdi(c *gin.Context) {
 	c.JSON(http.StatusOK, prodis)
 }
 
+func (s *Server) CreateProdi(c *gin.Context) {
+	var p models.Prodi
+	if !bind(c, &p) {
+		return
+	}
+	if p.Code == "" || p.Name == "" {
+		fail(c, http.StatusBadRequest, "Kode dan nama prodi wajib diisi")
+		return
+	}
+	// Check duplicate code
+	var existing models.Prodi
+	if err := s.DB.Where("code = ?", p.Code).First(&existing).Error; err == nil {
+		fail(c, http.StatusBadRequest, "Kode prodi sudah digunakan")
+		return
+	}
+	s.DB.Create(&p)
+	c.JSON(http.StatusOK, p)
+}
+
+func (s *Server) UpdateProdi(c *gin.Context) {
+	var p models.Prodi
+	if err := s.DB.First(&p, "id = ?", c.Param("id")).Error; err != nil {
+		fail(c, http.StatusNotFound, "prodi tidak ditemukan")
+		return
+	}
+	var body models.Prodi
+	_ = c.ShouldBindJSON(&body)
+	if body.Code != "" {
+		p.Code = body.Code
+	}
+	if body.Name != "" {
+		p.Name = body.Name
+	}
+	s.DB.Save(&p)
+	c.JSON(http.StatusOK, p)
+}
+
 // ---------- CPL ----------
 
 func (s *Server) ListCPL(c *gin.Context) {
 	var cpls []models.CPL
 	q := s.DB.Preload("Prodi").Order("code asc")
-	if prodiID := c.Query("prodi_id"); prodiID != "" {
-		q = q.Where("prodi_id = ?", prodiID)
+	if prodiCode := c.Query("prodi_code"); prodiCode != "" {
+		q = q.Where("prodi_code = ?", prodiCode)
 	}
 	q.Find(&cpls)
 	c.JSON(http.StatusOK, cpls)
@@ -126,8 +163,8 @@ func (s *Server) UpdateCPL(c *gin.Context) {
 	cpl.Code = body.Code
 	cpl.Description = body.Description
 	cpl.Domain = body.Domain
-	if body.ProdiID != "" {
-		cpl.ProdiID = body.ProdiID
+	if body.ProdiCode != "" {
+		cpl.ProdiCode = body.ProdiCode
 	}
 	s.DB.Save(&cpl)
 	s.DB.Preload("Prodi").First(&cpl, "id = ?", cpl.ID)
@@ -146,8 +183,8 @@ func (s *Server) ListCourses(c *gin.Context) {
 	role := currentRole(c)
 	uid := currentUserID(c)
 	q := s.DB.Preload("Lecturer").Preload("Prodi").Order("created_at desc")
-	if prodiID := c.Query("prodi_id"); prodiID != "" {
-		q = q.Where("prodi_id = ?", prodiID)
+	if prodiCode := c.Query("prodi_code"); prodiCode != "" {
+		q = q.Where("prodi_code = ?", prodiCode)
 	}
 	switch role {
 	case "dosen":
@@ -203,8 +240,8 @@ func (s *Server) UpdateCourse(c *gin.Context) {
 	if body.LecturerID != "" {
 		course.LecturerID = body.LecturerID
 	}
-	if body.ProdiID != "" {
-		course.ProdiID = body.ProdiID
+	if body.ProdiCode != "" {
+		course.ProdiCode = body.ProdiCode
 	}
 	s.DB.Save(&course)
 	s.DB.Preload("Lecturer").Preload("Prodi").First(&course, "id = ?", course.ID)

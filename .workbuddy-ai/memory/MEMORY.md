@@ -21,11 +21,16 @@
 
 ## Multi-Prodi Architecture
 - `Prodi` model: {code, name} — 8 programs seeded on first run
-- `CPL` has `ProdiID` — each prodi manages its own CPL set
-- `Course` has `ProdiID` — courses belong to a prodi
-- `ListCPL` supports `?prodi_id=` filter
-- `ObeTab` filters CPL by `course.prodi_id`
+- All prodi relations use **ProdiCode** (text-based FK referencing `Prodi.Code`), NOT UUID
+- `User` has `ProdiCode` — dosen/mahasiswa linked to prodi via code
+- `CPL` has `ProdiCode` — each prodi manages its own CPL set
+- `Course` has `ProdiCode` — courses belong to a prodi
+- `ListCPL` supports `?prodi_code=` filter, `ListCourses` supports `?prodi_code=`
+- `ObeTab` filters CPL by `course.prodi_code`
 - RPS print shows prodi name dynamically in identitas table
+- AdminCPL: has CreateDialog, EditCPLDialog, CreateProdiDialog
+- AdminUsers: UserFormFields uses `<Select>` dropdown for prodi (fetched from /prodi)
+- Backend routes: GET/POST /prodi, PUT /prodi/:id, GET /cpl?prodi_code=, GET /courses?prodi_code=
 
 ## Conventions
 - Indonesian language for UI labels
