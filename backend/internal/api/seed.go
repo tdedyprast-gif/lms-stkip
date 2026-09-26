@@ -13,7 +13,7 @@ func (s *Server) Seed() {
 	var admin models.User
 	if err := s.DB.Where("email = ?", s.Cfg.AdminEmail).First(&admin).Error; err != nil {
 		hash, _ := hashPassword(s.Cfg.AdminPassword)
-		admin = models.User{Name: "Administrator", Email: s.Cfg.AdminEmail, PasswordHash: hash, Role: "admin", Prodi: "TI"}
+		admin = models.User{Name: "Administrator", Email: s.Cfg.AdminEmail, PasswordHash: hash, Role: "admin"}
 		s.DB.Create(&admin)
 	}
 
@@ -26,17 +26,17 @@ func (s *Server) Seed() {
 	}
 
 	dh, _ := hashPassword("dosen123")
-	dosen := models.User{Name: "Budi Santoso, M.Kom", Email: "dosen@stkippacitan.ac.id", PasswordHash: dh, Role: "dosen", NIDN: "0712088501", Prodi: "Pendidikan TI"}
+	dosen := models.User{Name: "Budi Santoso, M.Kom", Email: "dosen@stkippacitan.ac.id", PasswordHash: dh, Role: "dosen", NIDN: "0712088501", ProdiCode: "PIN"}
 	s.DB.Create(&dosen)
 
 	mh, _ := hashPassword("mahasiswa123")
 	students := []models.User{
-		{Name: "Ahmad Fauzi", Email: "ahmad@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207005", Prodi: "Pendidikan TI"},
-		{Name: "Siti Nurhaliza", Email: "siti@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207012", Prodi: "Pendidikan TI"},
-		{Name: "Rangga Pratama", Email: "rangga@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207018", Prodi: "Pendidikan TI"},
-		{Name: "Dewi Lestari", Email: "dewi@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207023", Prodi: "Pendidikan TI"},
-		{Name: "Fajar Ramadhan", Email: "fajar@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207031", Prodi: "Pendidikan TI"},
-		{Name: "Nabila Putri", Email: "nabila@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207044", Prodi: "Pendidikan TI"},
+		{Name: "Ahmad Fauzi", Email: "ahmad@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207005", ProdiCode: "PIN"},
+		{Name: "Siti Nurhaliza", Email: "siti@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207012", ProdiCode: "PIN"},
+		{Name: "Rangga Pratama", Email: "rangga@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207018", ProdiCode: "PIN"},
+		{Name: "Dewi Lestari", Email: "dewi@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207023", ProdiCode: "PIN"},
+		{Name: "Fajar Ramadhan", Email: "fajar@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207031", ProdiCode: "PIN"},
+		{Name: "Nabila Putri", Email: "nabila@student.stkippacitan.ac.id", PasswordHash: mh, Role: "mahasiswa", NIM: "2283207044", ProdiCode: "PIN"},
 	}
 	for i := range students {
 		s.DB.Create(&students[i])
@@ -44,10 +44,10 @@ func (s *Server) Seed() {
 
 	// --- CPL ---
 	cpls := []models.CPL{
-		{Code: "CPL-1", Domain: "Sikap", Description: "Menunjukkan sikap religius, humanis, dan tanggung jawab profesional."},
-		{Code: "CPL-2", Domain: "Pengetahuan", Description: "Menguasai konsep teoritis rekayasa perangkat lunak dan pemrograman."},
-		{Code: "CPL-3", Domain: "Keterampilan Umum", Description: "Mampu menerapkan pemikiran logis, kritis, dan inovatif."},
-		{Code: "CPL-4", Domain: "Keterampilan Khusus", Description: "Mampu merancang dan membangun aplikasi web fungsional."},
+		{Code: "CPL-1", Domain: "Sikap", Description: "Menunjukkan sikap religius, humanis, dan tanggung jawab profesional.", ProdiCode: "PIN"},
+		{Code: "CPL-2", Domain: "Pengetahuan", Description: "Menguasai konsep teoritis rekayasa perangkat lunak dan pemrograman.", ProdiCode: "PIN"},
+		{Code: "CPL-3", Domain: "Keterampilan Umum", Description: "Mampu menerapkan pemikiran logis, kritis, dan inovatif.", ProdiCode: "PIN"},
+		{Code: "CPL-4", Domain: "Keterampilan Khusus", Description: "Mampu merancang dan membangun aplikasi web fungsional.", ProdiCode: "PIN"},
 	}
 	for i := range cpls {
 		s.DB.Create(&cpls[i])
@@ -55,7 +55,7 @@ func (s *Server) Seed() {
 
 	// --- Course ---
 	course := models.Course{Code: "TIF301", Name: "Pemrograman Web", SKS: 3, Semester: 5, LecturerID: dosen.ID,
-		Description: "Mata kuliah pengembangan aplikasi web berbasis OBE meliputi HTML, CSS, JavaScript, backend, dan basis data."}
+		Description: "Mata kuliah pengembangan aplikasi web berbasis OBE meliputi HTML, CSS, JavaScript, backend, dan basis data.", ProdiCode: "PIN"}
 	s.DB.Create(&course)
 
 	// --- CPMK ---

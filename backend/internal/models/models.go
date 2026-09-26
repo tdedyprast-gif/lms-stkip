@@ -29,7 +29,8 @@ type User struct {
 	Role         string `json:"role"`
 	NIM          string `json:"nim"`
 	NIDN         string `json:"nidn"`
-	Prodi        string `json:"prodi"`
+	ProdiCode    string `gorm:"index" json:"prodi_code"`
+	Prodi        *Prodi `gorm:"foreignKey:ProdiCode;references:Code" json:"prodi,omitempty"`
 }
 
 // Program Studi
@@ -45,8 +46,8 @@ type CPL struct {
 	Code        string `json:"code"`
 	Description string `json:"description"`
 	Domain      string `json:"domain"`
-	ProdiID     string `gorm:"type:uuid;index" json:"prodi_id"`
-	Prodi       *Prodi `gorm:"foreignKey:ProdiID" json:"prodi,omitempty"`
+	ProdiCode   string `gorm:"index" json:"prodi_code"`
+	Prodi       *Prodi `gorm:"foreignKey:ProdiCode;references:Code" json:"prodi,omitempty"`
 }
 
 type Course struct {
@@ -58,8 +59,8 @@ type Course struct {
 	Description string `json:"description"`
 	LecturerID  string `gorm:"type:uuid" json:"lecturer_id"`
 	Lecturer    *User  `gorm:"foreignKey:LecturerID" json:"lecturer,omitempty"`
-	ProdiID     string `gorm:"type:uuid;index" json:"prodi_id"`
-	Prodi       *Prodi `gorm:"foreignKey:ProdiID" json:"prodi,omitempty"`
+	ProdiCode   string `gorm:"index" json:"prodi_code"`
+	Prodi       *Prodi `gorm:"foreignKey:ProdiCode;references:Code" json:"prodi,omitempty"`
 }
 
 type CPMK struct {

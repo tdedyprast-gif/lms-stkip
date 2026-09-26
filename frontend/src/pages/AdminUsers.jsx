@@ -26,7 +26,16 @@ const roleBadge = {
   mahasiswa: "bg-chart-2/15 text-chart-2",
 };
 
-const EMPTY_FORM = { name: "", email: "", password: "", role: "mahasiswa", nim: "", nidn: "", prodi: "Pendidikan TI" };
+const EMPTY_FORM = { name: "", email: "", password: "", role: "mahasiswa", nim: "", nidn: "", prodi_code: "" };
+
+// Shared hook to fetch prodi list
+function useProdis() {
+  const [prodis, setProdis] = useState([]);
+  useEffect(() => {
+    api.get("/prodi").then((r) => setProdis(r.data || [])).catch(() => {});
+  }, []);
+  return prodis;
+}
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -128,7 +137,7 @@ export default function AdminUsers() {
                     <Badge variant="secondary" className={roleBadge[u.role]}>{u.role}</Badge>
                   </TableCell>
                   <TableCell className="tabular-nums">{u.nim || u.nidn || "-"}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{u.prodi || "-"}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{u.prodi?.code || u.prodi_code || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       <Button variant="ghost" size="icon" onClick={() => setEditUser(u)} data-testid={`edit-user-${u.email}`}>
@@ -206,7 +215,7 @@ function EditUserDialog({ user, onUpdate, onClose }) {
     role: user.role || "mahasiswa",
     nim: user.nim || "",
     nidn: user.nidn || "",
-    prodi: user.prodi || "Pendidikan TI",
+    prodi_code: user.prodi_code || "",
   });
 
   const handleSave = () => {
@@ -237,6 +246,7 @@ function EditUserDialog({ user, onUpdate, onClose }) {
    Shared Form Fields
    ──────────────────────────────────────── */
 function UserFormFields({ form, setForm, requirePassword }) {
+  const prodis = useProdis();
   const f = (key, val) => setForm((prev) => ({ ...prev, [key]: val }));
   return (
     <div className="space-y-3">
@@ -283,7 +293,12 @@ function UserFormFields({ form, setForm, requirePassword }) {
       </div>
       <div className="space-y-1.5">
         <Label>Program Studi</Label>
-        <Input value={form.prodi} onChange={(e) => f("prodi", e.target.value)} data-testid="user-prodi" />
+        <Select value={form.prodi_code} onValueChange={(v) => f("prodi_code", v)}>
+          <SelectTrigger data-testid="user-prodi"><SelectValue placeholder="Pilih program studi" /></SelectTrigger>
+          <SelectContent>
+            {prodis.map((p) => <SelectItem key={p.id} value={p.code}>{p.code} — {p.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
@@ -292,7 +307,7 @@ function UserFormFields({ form, setForm, requirePassword }) {
 /* ────────────────────────────────────────
    Import Excel Dialog
    ──────────────────────────────────────── */
-const EXCEL_COLUMNS = ["name", "email", "password", "role", "nim", "nidn", "prodi"];
+const EXCEL_COLUMNS = ["name", "email", "password", "role", "nim", "nidn", "prodi_code"];
 
 function ImportExcelDialog({ onImported }) {
   const [open, setOpen] = useState(false);
@@ -312,10 +327,10 @@ function ImportExcelDialog({ onImported }) {
   };
 
   const downloadTemplate = () => {
-    const header = "name,email,password,role,nim,nidn,prodi\n";
+    const header = "name,email,password,role,nim,nidn,prodi_code\n";
     const sample = [
-      "Budi Santoso,budi@example.com,password123,mahasiswa,20230001,,Pendidikan TI",
-      "Siti Rahayu,siti@example.com,password123,dosen,,0712345601,Pendidikan TI",
+      "Budi Santoso,budi@example.com,password123,mahasiswa,20230001,,PIN",
+      "Siti Rahayu,siti@example.com,password123,dosen,,0712345601,PIN",
     ].join("\n");
     const blob = new Blob([header + sample], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -381,7 +396,7 @@ function ImportExcelDialog({ onImported }) {
         role: row.role || "mahasiswa",
         nim: row.nim || "",
         nidn: row.nidn || "",
-        prodi: row.prodi || "",
+        prodi_code: row.prodi_code || row.prodi || "",
       });
     });
 
@@ -441,7 +456,7 @@ function ImportExcelDialog({ onImported }) {
                   { col: "role", desc: "mahasiswa / dosen / admin (wajib)" },
                   { col: "nim", desc: "Nomor Induk Mahasiswa" },
                   { col: "nidn", desc: "Nomor Induk Dosen Nasional" },
-                  { col: "prodi", desc: "Program Studi" },
+                  { col: "prodi_code", desc: "Kode Program Studi (cth: PIN)" },
                 ].map(({ col, desc }) => (
                   <div key={col} className="rounded bg-background border px-2 py-1.5">
                     <span className="font-mono font-semibold text-primary">{col}</span>
@@ -521,7 +536,7 @@ function ImportExcelDialog({ onImported }) {
                         </Badge>
                       </TableCell>
                       <TableCell className="tabular-nums text-sm">{row.nim || row.nidn || "-"}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{row.prodi || "-"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{row.prodi_code || "-"}</TableCell>
                       <TableCell>
                         {errors[idx]
                           ? <span className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />{errors[idx]}</span>

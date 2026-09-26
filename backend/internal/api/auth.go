@@ -84,13 +84,13 @@ func (s *Server) RequireRole(roles ...string) gin.HandlerFunc {
 }
 
 type registerReq struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-	Role     string `json:"role"`
-	NIM      string `json:"nim"`
-	NIDN     string `json:"nidn"`
-	Prodi    string `json:"prodi"`
+	Name      string `json:"name" binding:"required"`
+	Email     string `json:"email" binding:"required,email"`
+	Password  string `json:"password" binding:"required,min=6"`
+	Role      string `json:"role"`
+	NIM       string `json:"nim"`
+	NIDN      string `json:"nidn"`
+	ProdiCode string `json:"prodi_code"`
 }
 
 func (s *Server) Register(c *gin.Context) {
@@ -114,7 +114,7 @@ func (s *Server) Register(c *gin.Context) {
 	}
 	u := models.User{
 		Name: req.Name, Email: email, PasswordHash: hash, Role: role,
-		NIM: req.NIM, NIDN: req.NIDN, Prodi: req.Prodi,
+		NIM: req.NIM, NIDN: req.NIDN, ProdiCode: req.ProdiCode,
 	}
 	if err := s.DB.Create(&u).Error; err != nil {
 		fail(c, http.StatusInternalServerError, err.Error())
@@ -150,7 +150,7 @@ func (s *Server) Login(c *gin.Context) {
 
 func (s *Server) Me(c *gin.Context) {
 	var u models.User
-	if err := s.DB.First(&u, "id = ?", currentUserID(c)).Error; err != nil {
+	if err := s.DB.Preload("Prodi").First(&u, "id = ?", currentUserID(c)).Error; err != nil {
 		fail(c, http.StatusNotFound, "User tidak ditemukan")
 		return
 	}

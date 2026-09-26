@@ -50,6 +50,8 @@ func (s *Server) Router() *gin.Engine {
 
 		// Program Studi
 		auth.GET("/prodi", s.ListProdi)
+		auth.POST("/prodi", s.RequireRole("admin"), s.CreateProdi)
+		auth.PUT("/prodi/:id", s.RequireRole("admin"), s.UpdateProdi)
 
 		// CPL
 		auth.GET("/cpl", s.ListCPL)
