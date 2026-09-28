@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -214,14 +215,25 @@ function CreateDialog({ onCreate, prodis }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Kode</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="CPL-1" data-testid="cpl-code" /></div>
-            <div className="space-y-1.5">
-              <Label>Domain</Label>
-              <Select value={form.domain} onValueChange={(v) => setForm({ ...form, domain: v })}>
-                <SelectTrigger data-testid="cpl-domain"><SelectValue /></SelectTrigger>
-                <SelectContent>{domains.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-              </Select>
+          <div className="space-y-1.5">
+            <Label>Kode</Label>
+            <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="CPL-1" data-testid="cpl-code" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Domain</Label>
+            <div className="grid grid-cols-2 gap-2 pt-1" data-testid="cpl-domain">
+              {domains.map((d) => (
+                <div key={d} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`create-domain-${d}`}
+                    checked={form.domain === d}
+                    onCheckedChange={() => setForm({ ...form, domain: d })}
+                  />
+                  <Label htmlFor={`create-domain-${d}`} className="text-sm cursor-pointer font-normal">
+                    {d}
+                  </Label>
+                </div>
+              ))}
             </div>
           </div>
           <div className="space-y-1.5"><Label>Deskripsi</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="cpl-desc" /></div>
@@ -265,14 +277,25 @@ function EditCPLDialog({ cpl, prodis, onUpdate, onClose }) {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5"><Label>Kode</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} data-testid="edit-cpl-code" /></div>
-            <div className="space-y-1.5">
-              <Label>Domain</Label>
-              <Select value={form.domain} onValueChange={(v) => setForm({ ...form, domain: v })}>
-                <SelectTrigger data-testid="edit-cpl-domain"><SelectValue /></SelectTrigger>
-                <SelectContent>{domains.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
-              </Select>
+          <div className="space-y-1.5">
+            <Label>Kode</Label>
+            <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} data-testid="edit-cpl-code" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Domain</Label>
+            <div className="grid grid-cols-2 gap-2 pt-1" data-testid="edit-cpl-domain">
+              {domains.map((d) => (
+                <div key={d} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`edit-domain-${d}`}
+                    checked={form.domain === d}
+                    onCheckedChange={() => setForm({ ...form, domain: d })}
+                  />
+                  <Label htmlFor={`edit-domain-${d}`} className="text-sm cursor-pointer font-normal">
+                    {d}
+                  </Label>
+                </div>
+              ))}
             </div>
           </div>
           <div className="space-y-1.5"><Label>Deskripsi</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="edit-cpl-desc" /></div>
