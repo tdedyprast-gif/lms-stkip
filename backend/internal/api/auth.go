@@ -28,7 +28,7 @@ func (s *Server) createToken(u models.User) (string, error) {
 		"role":  u.Role,
 		"name":  u.Name,
 		"type":  "access",
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+		"exp":   time.Now().Add(30 * time.Minute).Unix(),
 		"iat":   time.Now().Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
