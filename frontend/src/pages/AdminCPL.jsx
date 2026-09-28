@@ -23,6 +23,20 @@ const domainColor = {
   "Keterampilan Umum": "bg-chart-2/15 text-chart-2", "Keterampilan Khusus": "bg-success/15 text-success",
 };
 
+// Helper to normalize domain stored format (string or array)
+const parseDomains = (domain) => {
+  if (Array.isArray(domain)) return domain;
+  if (typeof domain === "string" && domain.trim()) {
+    try {
+      const parsed = JSON.parse(domain);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      return domain.split(",").map((d) => d.trim()).filter(Boolean);
+    }
+  }
+  return [];
+};
+
 export default function AdminCPL() {
   const [cpls, setCpls] = useState([]);
   const [prodis, setProdis] = useState([]);
@@ -101,26 +115,31 @@ export default function AdminCPL() {
             <div key={code}>
               <h3 className="font-heading font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-3">{group.name}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {group.items.map((c) => (
-                  <Card key={c.id} className="p-5 card-lift" data-testid={`cpl-card-${c.code}`}>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className="bg-primary text-primary-foreground font-bold">{c.code}</Badge>
-                        <Badge variant="secondary" className={domainColor[c.domain]}>{c.domain}</Badge>
-                        {c.prodi?.code && <Badge variant="outline" className="text-[10px]">{c.prodi.code}</Badge>}
+                {group.items.map((c) => {
+                  const domainList = parseDomains(c.domain);
+                  return (
+                    <Card key={c.id} className="p-5 card-lift" data-testid={`cpl-card-${c.code}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge className="bg-primary text-primary-foreground font-bold">{c.code}</Badge>
+                          {domainList.map((d) => (
+                            <Badge key={d} variant="secondary" className={domainColor[d]}>{d}</Badge>
+                          ))}
+                          {c.prodi?.code && <Badge variant="outline" className="text-[10px]">{c.prodi.code}</Badge>}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => setEditCpl(c)} data-testid={`edit-cpl-${c.code}`}>
+                            <Pencil className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => del(c.id)} data-testid={`del-cpl-${c.code}`}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setEditCpl(c)} data-testid={`edit-cpl-${c.code}`}>
-                          <Pencil className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => del(c.id)} data-testid={`del-cpl-${c.code}`}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-sm mt-3 leading-relaxed">{c.description}</p>
-                  </Card>
-                ))}
+                      <p className="text-sm mt-3 leading-relaxed">{c.description}</p>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -199,7 +218,17 @@ function CreateProdiDialog({ onCreate }) {
    ──────────────────────────────────────── */
 function CreateDialog({ onCreate, prodis }) {
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ code: "", domain: "Pengetahuan", description: "", prodi_code: "" });
+  const [form, setForm] = useState({ code: "", domain: ["Pengetahuan"], description: "", prodi_code: "" });
+
+  const toggleDomain = (d) => {
+    const current = Array.isArray(form.domain) ? form.domain : [];
+    if (current.includes(d)) {
+      setForm({ ...form, domain: current.filter((item) => item !== d) });
+    } else {
+      setForm({ ...form, domain: [...current, d] });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild><Button className="rounded-full" data-testid="add-cpl-button"><Plus className="h-4 w-4 mr-1" /> Tambah CPL</Button></DialogTrigger>
@@ -226,8 +255,8 @@ function CreateDialog({ onCreate, prodis }) {
                 <div key={d} className="flex items-center space-x-2">
                   <Checkbox
                     id={`create-domain-${d}`}
-                    checked={form.domain === d}
-                    onCheckedChange={() => setForm({ ...form, domain: d })}
+                    checked={(form.domain || []).includes(d)}
+                    onCheckedChange={() => toggleDomain(d)}
                   />
                   <Label htmlFor={`create-domain-${d}`} className="text-sm cursor-pointer font-normal">
                     {d}
@@ -238,7 +267,7 @@ function CreateDialog({ onCreate, prodis }) {
           </div>
           <div className="space-y-1.5"><Label>Deskripsi</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} data-testid="cpl-desc" /></div>
         </div>
-        <DialogFooter><Button onClick={() => { onCreate(form); setOpen(false); setForm({ code: "", domain: "Pengetahuan", description: "", prodi_code: "" }); }} data-testid="save-cpl-button">Simpan</Button></DialogFooter>
+        <DialogFooter><Button onClick={() => { onCreate(form); setOpen(false); setForm({ code: "", domain: ["Pengetahuan"], description: "", prodi_code: "" }); }} data-testid="save-cpl-button">Simpan</Button></DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -250,10 +279,19 @@ function CreateDialog({ onCreate, prodis }) {
 function EditCPLDialog({ cpl, prodis, onUpdate, onClose }) {
   const [form, setForm] = useState({
     code: cpl.code || "",
-    domain: cpl.domain || "Pengetahuan",
+    domain: parseDomains(cpl.domain),
     description: cpl.description || "",
     prodi_code: cpl.prodi_code || "",
   });
+
+  const toggleDomain = (d) => {
+    const current = Array.isArray(form.domain) ? form.domain : [];
+    if (current.includes(d)) {
+      setForm({ ...form, domain: current.filter((item) => item !== d) });
+    } else {
+      setForm({ ...form, domain: [...current, d] });
+    }
+  };
 
   const handleSave = () => {
     if (!form.code || !form.description) {
@@ -288,8 +326,8 @@ function EditCPLDialog({ cpl, prodis, onUpdate, onClose }) {
                 <div key={d} className="flex items-center space-x-2">
                   <Checkbox
                     id={`edit-domain-${d}`}
-                    checked={form.domain === d}
-                    onCheckedChange={() => setForm({ ...form, domain: d })}
+                    checked={(form.domain || []).includes(d)}
+                    onCheckedChange={() => toggleDomain(d)}
                   />
                   <Label htmlFor={`edit-domain-${d}`} className="text-sm cursor-pointer font-normal">
                     {d}
