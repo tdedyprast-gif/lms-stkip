@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -45,7 +46,7 @@ type CPL struct {
 	Base
 	Code        string `json:"code"`
 	Description string `json:"description"`
-	Domain      string `json:"domain"`
+	Domain      datatypes.JSON `json:"domain"`
 	ProdiCode   string `gorm:"index" json:"prodi_code"`
 	Prodi       *Prodi `gorm:"foreignKey:ProdiCode;references:Code" json:"prodi,omitempty"`
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"obelms/internal/models"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/datatypes"
 )
 
 // ---------- Users (admin) ----------
@@ -142,12 +144,49 @@ func (s *Server) ListCPL(c *gin.Context) {
 	c.JSON(http.StatusOK, cpls)
 }
 
+type cplInput struct {
+	Code        string          `json:"code"`
+	Description string          `json:"description"`
+	Domain      json.RawMessage `json:"domain"`
+	ProdiCode   string          `json:"prodi_code"`
+}
+
+func parseDomainRaw(raw json.RawMessage) datatypes.JSON {
+	if len(raw) == 0 {
+		return nil
+	}
+	// Coba string
+	var str string
+	if err := json.Unmarshal(raw, &str); err == nil {
+		b, _ := json.Marshal([]string{str})
+		return datatypes.JSON(b)
+	}
+	// Coba array
+	var arr []string
+	if err := json.Unmarshal(raw, &arr); err == nil {
+		b, _ := json.Marshal(arr)
+		return datatypes.JSON(b)
+	}
+	// Fallback
+	return datatypes.JSON(raw)
+}
+
 func (s *Server) CreateCPL(c *gin.Context) {
-	var cpl models.CPL
-	if !bind(c, &cpl) {
+	var input cplInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		fail(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	s.DB.Create(&cpl)
+	cpl := models.CPL{
+		Code:        input.Code,
+		Description: input.Description,
+		Domain:      parseDomainRaw(input.Domain),
+		ProdiCode:   input.ProdiCode,
+	}
+	if err := s.DB.Create(&cpl).Error; err != nil {
+		fail(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 	s.DB.Preload("Prodi").First(&cpl, "id = ?", cpl.ID)
 	c.JSON(http.StatusOK, cpl)
 }
@@ -158,13 +197,18 @@ func (s *Server) UpdateCPL(c *gin.Context) {
 		fail(c, http.StatusNotFound, "cpl tidak ditemukan")
 		return
 	}
-	var body models.CPL
-	_ = c.ShouldBindJSON(&body)
-	cpl.Code = body.Code
-	cpl.Description = body.Description
-	cpl.Domain = body.Domain
-	if body.ProdiCode != "" {
-		cpl.ProdiCode = body.ProdiCode
+	var input cplInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		fail(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	cpl.Code = input.Code
+	cpl.Description = input.Description
+	if len(input.Domain) > 0 {
+		cpl.Domain = parseDomainRaw(input.Domain)
+	}
+	if input.ProdiCode != "" {
+		cpl.ProdiCode = input.ProdiCode
 	}
 	s.DB.Save(&cpl)
 	s.DB.Preload("Prodi").First(&cpl, "id = ?", cpl.ID)

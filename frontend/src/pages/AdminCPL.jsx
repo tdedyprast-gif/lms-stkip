@@ -50,12 +50,14 @@ export default function AdminCPL() {
   useEffect(() => { load(); }, []);
 
   const create = async (form) => {
-    try { await api.post("/cpl", form); toast.success("CPL ditambahkan"); load(); }
+    const payload = { ...form, domain: Array.isArray(form.domain) ? JSON.stringify(form.domain) : form.domain };
+    try { await api.post("/cpl", payload); toast.success("CPL ditambahkan"); load(); }
     catch (e) { toast.error(apiError(e)); }
   };
 
   const update = async (id, form) => {
-    try { await api.put(`/cpl/${id}`, form); toast.success("CPL diperbarui"); setEditCpl(null); load(); }
+    const payload = { ...form, domain: Array.isArray(form.domain) ? JSON.stringify(form.domain) : form.domain };
+    try { await api.put(`/cpl/${id}`, payload); toast.success("CPL diperbarui"); setEditCpl(null); load(); }
     catch (e) { toast.error(apiError(e)); }
   };
 

@@ -57,6 +57,12 @@ obelms-server     # Nama binary Go Anda di Dockerfile
 
 # Docker data local (jika ada volume lokal)
 .docker/
+docker-compose.dev.yml
+docker-compose.prod.yml
+Dockerfile.dev
+**/Dockerfile.dev
+nginx.conf
+**/nginx.conf
 
 # ==================================================================
 # 5️⃣ USER UPLOADS & LOGS
